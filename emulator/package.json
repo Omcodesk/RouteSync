@@ -1,0 +1,13 @@
+{
+  "name": "transport-emulator",
+  "version": "1.0.0",
+  "description": "Emulator for Transport Tracker - posts simulated bus updates",
+  "main": "emulator.js",
+  "scripts": {
+    "start": "node emulator.js"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "fs-extra": "^11.1.1"
+  }
+}

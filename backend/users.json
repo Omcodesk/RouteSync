@@ -1,0 +1,18 @@
+{
+  "omchaddha7@gmail.com": {
+    "id": "admin-001",
+    "email": "omchaddha7@gmail.com",
+    "passwordHash": "$2b$12$gKFrQjUMdwp2vNk0y.AaueJLcRZjM4Bd889jG/2lvI5ZkRJER.apC",
+    "role": "admin",
+    "verified": true,
+    "verifyToken": null
+  },
+  "omchaddha1@gmail.com": {
+    "id": "driver-001",
+    "email": "omchaddha1@gmail.com",
+    "passwordHash": "$2b$12$gKFrQjUMdwp2vNk0y.AaueJLcRZjM4Bd889jG/2lvI5ZkRJER.apC",
+    "role": "driver",
+    "verified": true,
+    "verifyToken": null
+  }
+}

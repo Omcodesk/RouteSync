@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Transport Tracker</title>
+
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <!-- Leaflet.draw CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
+
+  <!-- Icons (Font Awesome) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+  <div id="app">
+
+    <!-- NAV / header -->
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <div class="logo-badge">TT</div>
+          <div class="brand-text">Transport<span>Tracker</span></div>
+        </div>
+
+        <nav class="top-nav" aria-label="Main navigation">
+          <button id="nav-home" class="nav-btn">Home</button>
+        </nav>
+
+      </div>
+    </header>
+
+    <!-- HOME / Landing -->
+    <main id="home" class="page active">
+      <section class="hero">
+        <div class="container hero-inner">
+          <div class="hero-text">
+            <h1 class="hero-title">Real-Time Bus Tracking</h1>
+            <p class="hero-sub">Track buses live, manage routes, and keep passengers informed </p>
+          </div>
+
+          <div class="role-cards" aria-hidden="false">
+            <article class="role-card role-passenger" data-role="passenger" aria-labelledby="role-passenger-title">
+              <div class="role-icon" aria-hidden="true"><i class="fa-solid fa-people-roof"></i></div>
+              <h3 id="role-passenger-title">Passenger</h3>
+              <p>Find routes, view live buses, and check ETAs.</p>
+              <ul class="role-features">
+                <li>Live bus tracking</li>
+                <li>Estimated arrival times</li>
+                <li>Route overview</li>
+              </ul>
+              <button class="role-cta" data-role="passenger">Enter as Passenger</button>
+            </article>
+
+            <article class="role-card role-driver" data-role="driver" aria-labelledby="role-driver-title">
+              <div class="role-icon" aria-hidden="true"><i class="fa-solid fa-tachograph-digital"></i></div>
+              <h3 id="role-driver-title">Driver</h3>
+              <p>Choose route, toggle duty, and send live location updates.</p>
+              <ul class="role-features">
+                <li>Route selection</li>
+                <li>On Duty / Off Duty</li>
+                <li>Simulator</li>
+              </ul>
+              <button class="role-cta" data-role="driver">Enter as Driver</button>
+            </article>
+
+            <article class="role-card role-admin" data-role="admin" aria-labelledby="role-admin-title">
+              <div class="role-icon" aria-hidden="true"><i class="fa-solid fa-map-location"></i></div>
+              <h3 id="role-admin-title">Admin</h3>
+              <p>Create and manage routes using an interactive map.</p>
+              <ul class="role-features">
+                <li>Draw routes</li>
+                <li>Edit / Delete</li>
+                <li>Realtime broadcast</li>
+              </ul>
+              <button class="role-cta" data-role="admin">Enter as Admin</button>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="container quick-notes">
+        <p class="muted">Built with Leaflet, Socket.IO, and a Node.js backend. Click a role to continue.</p>
+      </section>
+    </main>
+
+    <!-- LOGIN MODAL (shared) -->
+    <div id="login-modal" class="modal hidden" role="dialog" aria-hidden="true" aria-labelledby="login-title">
+      <div class="modal-card" role="document">
+        <button class="modal-close" id="login-close" aria-label="Close">&times;</button>
+        <div class="modal-body">
+          <div class="modal-badge" id="login-role-badge" aria-hidden="true"><i class="fa-solid fa-people-roof"></i></div>
+          <h2 id="login-title">Sign in</h2>
+          <p id="login-sub" class="muted">Enter your email and password</p>
+
+          <form id="login-form" class="form" onsubmit="return false;">
+            <label>Email
+              <input id="login-email" type="email" autocomplete="email" required />
+            </label>
+
+            <label>Password
+              <input id="login-password" type="password" autocomplete="current-password" required />
+            </label>
+
+            <div class="form-row" style="display:flex;justify-content:space-between;align-items:center">
+              <label class="small"><input id="remember-me" type="checkbox" /> Remember me</label>
+            </div>
+
+            <div class="form-actions">
+              <button id="login-submit" class="btn primary" type="button">Sign In</button>
+            </div>
+
+            <p id="login-msg" class="muted small" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASSENGER PAGE -->
+    <section id="passenger" class="page" aria-labelledby="passenger-title">
+      <div class="container passenger-top" style="margin-bottom:12px">
+        <button class="back" data-to="home">‹ Home</button>
+        <h2 id="passenger-title">Choose a Route</h2>
+        <p class="muted">Select a route to view buses, ETAs, and live tracking.</p>
+      </div>
+
+      <div class="container passenger-content">
+        <!-- route cards grid -->
+        <div id="routes-grid" class="routes-grid" aria-live="polite"></div>
+      </div>
+
+      <!-- route map view (hidden until route selected) -->
+      <div id="passenger-map-page" class="page-section hidden" style="margin-top:18px">
+        <div class="passenger-map-layout container">
+          <aside class="sidebar" aria-label="Buses">
+            <button class="back" data-to="passenger-list">‹ Back to routes</button>
+            <div id="bus-list" class="bus-list" role="list"></div>
+          </aside>
+          <div class="map-wrap" style="flex:1">
+            <div id="passenger-map" class="leaflet-map" aria-label="Passenger map"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DRIVER PAGE (auth removed; controls stay) -->
+    <section id="driver" class="page" aria-labelledby="driver-title">
+      <header class="topbar">
+        <button class="back" data-to="home">‹ Home</button>
+        <h2 id="driver-title">Driver Dashboard</h2>
+      </header>
+
+      <main class="driver-main container" style="margin-top:12px">
+        <div class="driver-panel">
+
+          <!-- AUTH CARD REMOVED HERE -->
+          <!-- Controls card remains for drivers to use without typing credentials -->
+
+          <div class="card" style="margin-top:0">
+            <h3>Controls</h3>
+
+            <div style="display:flex;align-items:center;gap:10px">
+              <label style="display:flex;align-items:center;gap:8px">On Duty
+                <span class="switch">
+                  <input id="duty-switch" type="checkbox"><span class="slider" aria-hidden="true"></span>
+                </span>
+              </label>
+            </div>
+
+            <div class="control-row" style="margin-top:10px">
+              <label>Bus ID <input id="bus-id" type="text" /></label>
+
+              <label>Route
+                <select id="driver-route-select"><option value="">Loading...</option></select>
+              </label>
+            </div>
+
+            <div class="control-row" style="margin-top:10px">
+              <label>Occupancy
+                <select id="occupancy">
+                  <option value="Low">Low</option>
+                  <option value="Half">Half</option>
+                  <option value="Full">Full</option>
+                </select>
+              </label>
+
+              <label>Speed (km/h) <input id="speed" type="number" value="20" min="0" /></label>
+            </div>
+
+            <div class="row" style="margin-top:12px">
+              <button id="send-update" class="btn primary">Send Update</button>
+              <button id="start-trip" class="btn">Start Trip</button>
+              <button id="end-trip" class="btn danger">End Trip</button>
+            </div>
+
+            <label class="sim" style="margin-top:10px;">
+              <input id="sim-toggle" type="checkbox" /> Simulator (auto)
+            </label>
+
+            <p id="drv-msg" class="muted small" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <div class="driver-map" id="driver-map" aria-label="Driver map"></div>
+      </main>
+    </section>
+
+    <!-- ADMIN PAGE -->
+    <section id="admin" class="page" aria-labelledby="admin-title">
+      <header class="topbar">
+        <button class="back" data-to="home">‹ Home</button>
+        <h2 id="admin-title">Admin Panel</h2>
+      </header>
+
+      <main class="admin-main container" style="margin-top:12px">
+        <aside class="admin-left">
+          <h3>Create Route</h3>
+          <p class="muted">Use draw tool on map → save route.</p>
+          <button id="reload-routes" class="btn">Reload Routes</button>
+
+          <h3 style="margin-top:18px">Existing Routes</h3>
+          <ul id="admin-route-list" class="admin-route-list" aria-live="polite"></ul>
+        </aside>
+
+        <section class="admin-map-wrap" style="flex:1">
+          <div id="admin-map" class="leaflet-map" aria-label="Admin map"></div>
+        </section>
+      </main>
+    </section>
+
+    <!-- Toasts / notifications -->
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <!-- Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet.draw -->
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <!-- Socket.IO client (CDN ensures client lib available regardless of frontend origin) -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <!-- Main app script -->
+    <script src="app.js"></script>
+  </div>
+</body>
+</html>

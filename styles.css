@@ -1,0 +1,287 @@
+/* styles.css
+   Hybrid: full/detailed + modern optimized rules
+   Combines previous long stylesheet with updated layout selectors.
+*/
+
+/* ================== variables & resets ================== */
+:root{
+  --bg-1: #15002b;
+  --bg-2: #3a106f;
+  --glass: rgba(255,255,255,0.06);
+  --glass-2: rgba(255,255,255,0.04);
+  --muted: rgba(255,255,255,0.85);
+  --muted-2: rgba(255,255,255,0.72);
+  --accent-pink: #ff7bd3;
+  --accent-blue: #00c2ff;
+  --accent-green: #7effa1;
+  --neon: #7a5fff;
+  --card-radius: 14px;
+  --glass-border: rgba(255,255,255,0.08);
+  --max-width: 1200px;
+  --shadow-1: 0 8px 30px rgba(0,0,0,0.18);
+  --shadow-2: 0 18px 50px rgba(12,6,30,0.45);
+  --text: #f7f7fb;
+  --map-height-lg: 72vh;
+  --map-height-sm: 52vh;
+}
+
+/* Reset */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body,#app{height:100%}
+body{
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color:var(--text);
+  background:
+    radial-gradient(1000px 400px at 8% 8%, rgba(122,95,255,0.12), transparent 8%),
+    linear-gradient(180deg,var(--bg-1),var(--bg-2));
+  line-height:1.45;
+  min-height:100vh;
+}
+
+/* container helper */
+.container{width:94%;max-width:var(--max-width);margin:0 auto;padding:0 12px}
+
+/* ================== header / nav ================== */
+.site-header{padding:16px 0;position:sticky;top:0;z-index:60;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));backdrop-filter: blur(6px);border-bottom:1px solid rgba(255,255,255,0.02)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo-badge{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent-pink),#7a5fff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;box-shadow:var(--shadow-1)}
+.brand-text{font-size:18px;font-weight:700}
+.brand-text span{font-weight:900;color:#fff}
+
+/* top nav */
+.top-nav{display:flex;gap:8px;align-items:center}
+.nav-btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer;transition:all .18s}
+.nav-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,0.15)}
+.nav-btn.active{background:linear-gradient(90deg,var(--accent-blue),var(--neon));color:#fff;border:none}
+
+/* ================== hero / landing ================== */
+.hero{padding:36px 0 12px}
+.hero-inner{display:flex;gap:28px;align-items:center;justify-content:space-between}
+.hero-text{flex:1;max-width:560px}
+.hero-title{font-size:44px;margin-bottom:6px;font-weight:800;letter-spacing:-1px}
+.hero-sub{color:var(--muted-2);font-size:16px}
+
+/* role cards group */
+.role-cards{display:flex;gap:20px;flex-wrap:wrap;align-items:stretch;justify-content:center;margin-top:12px}
+.role-card{
+  flex:1 1 300px;min-width:240px;max-width:360px;padding:24px;border-radius:var(--card-radius);
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid var(--glass-border);backdrop-filter: blur(8px);box-shadow:var(--shadow-2);
+  display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;transition:transform .22s, box-shadow .22s;
+}
+.role-card:hover{transform:translateY(-10px);box-shadow:0 28px 80px rgba(0,0,0,0.5)}
+.role-icon{width:72px;height:72px;border-radius:16px;background:linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff}
+.role-card h3{font-size:20px;margin:6px 0}
+.role-card p{color:var(--muted-2);font-size:14px;max-width:320px}
+.role-features{list-style:none;margin-top:4px;color:var(--muted-2);font-size:13px;padding-left:0}
+.role-features li{margin:6px 0}
+.role-cta{margin-top:12px;padding:12px 18px;border-radius:12px;border:none;cursor:pointer;font-weight:800;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,0.15)}
+.role-passenger .role-cta{background:linear-gradient(135deg,var(--accent-blue),#7effa1)}
+.role-driver .role-cta{background:linear-gradient(135deg,var(--accent-blue),#7a5fff)}
+.role-admin .role-cta{background:linear-gradient(135deg,var(--accent-pink),#ff9ad5)}
+
+/* quick notes */
+.quick-notes{margin-top:18px;text-align:center;color:rgba(255,255,255,0.75)}
+
+/* ================== pages / common UI ================== */
+.page{display:none;padding:18px 0 60px}
+.page.active{display:block}
+.back{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;color:var(--text);cursor:pointer}
+.muted{color:rgba(255,255,255,0.75)}
+.small{font-size:13px;color:rgba(255,255,255,0.72)}
+
+/* ================== modal / login ================== */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,3,6,0.6);z-index:120}
+.modal.hidden{display:none}
+.modal-card{width:420px;max-width:94%;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));padding:18px;border:1px solid var(--glass-border);box-shadow:0 40px 120px rgba(0,0,0,0.7)}
+.modal-close{position:absolute;right:22px;top:20px;background:transparent;border:none;color:rgba(255,255,255,0.7);font-size:22px;cursor:pointer}
+.modal-badge{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#7a5fff,#ff7bd3);display:flex;align-items:center;justify-content:center;margin:6px auto 8px;font-size:22px}
+
+/* login form */
+.form label{display:block;margin:10px 0;color:rgba(255,255,255,0.92);font-size:13px}
+.form input, .form select, textarea{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:var(--text)}
+.form-actions{display:flex;gap:10px;align-items:center;margin-top:12px;justify-content:space-between}
+.btn{padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text);cursor:pointer}
+.btn.primary{background:linear-gradient(90deg,var(--accent-blue),var(--neon));color:#fff;border:none;font-weight:700}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+.btn.danger{background:linear-gradient(90deg,#ff6b6b,#ff8aa0);color:#fff;border:none}
+
+/* ================== passenger (routes grid + map) ================== */
+.passenger-content{padding:18px 0}
+.routes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.route-card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;border:1px solid var(--glass-border);box-shadow:0 10px 30px rgba(0,0,0,0.28);cursor:pointer;transition:transform .18s}
+.route-card:hover{transform:translateY(-6px)}
+.route-card .title{font-weight:700;font-size:18px;margin-bottom:6px}
+.route-card .desc{color:var(--muted-2);font-size:14px}
+.route-meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.route-meta .badge{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);font-size:13px}
+
+/* passenger map layout */
+.passenger-map-layout{display:flex;gap:12px;height:var(--map-height-lg)}
+.sidebar{width:320px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;border:1px solid var(--glass-border);overflow:auto}
+.map-wrap{flex:1;border-radius:12px;overflow:hidden;border:1px solid var(--glass-border)}
+.leaflet-map{width:100%;height:var(--map-height-lg);border-radius:12px;overflow:hidden}
+
+/* bus list */
+.bus-list .bus-card, .bus-card{background:rgba(255,255,255,0.03);padding:10px;border-radius:10px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.03)}
+.bus-card .bus-id{font-weight:700}
+.bus-card .bus-status{color:var(--muted-2);font-size:13px}
+
+/* ================== driver ================== */
+.driver-main{display:flex;gap:20px;padding:18px 0}
+.driver-panel{width:360px}
+.card{background:rgba(255,255,255,0.03);padding:14px;border-radius:12px;border:1px solid var(--glass-border);backdrop-filter: blur(6px)}
+.control-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.driver-map{flex:1;border-radius:12px;border:1px solid var(--glass-border);height:var(--map-height-lg);overflow:hidden}
+
+/* switch */
+.switch{display:inline-block;position:relative}
+.switch input{display:none}
+.slider{width:56px;height:32px;background:rgba(255,255,255,0.06);display:inline-block;border-radius:20px;position:relative;vertical-align:middle;cursor:pointer;transition:all .18s}
+.slider:before{content:'';position:absolute;left:6px;top:6px;width:20px;height:20px;background:#fff;border-radius:50%;transition:all .18s}
+.switch input:checked + .slider{background:linear-gradient(90deg,var(--accent-blue),var(--neon))}
+.switch input:checked + .slider:before{transform:translateX(24px)}
+
+/* simulator label */
+.sim{display:block;margin-top:10px;color:var(--muted-2)}
+
+/* ================== admin ================== */
+.admin-main{display:flex;gap:12px;padding:18px 0}
+.admin-left{width:360px;padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));border:1px solid var(--glass-border)}
+.admin-map-wrap{flex:1}
+.admin-route-list{list-style:none;padding:0;margin-top:10px}
+.admin-route-item{background:rgba(255,255,255,0.03);padding:10px;border-radius:10px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.03)}
+.admin-route-item strong{display:block}
+.admin-route-controls{margin-top:8px}
+.admin-route-controls button{margin-right:6px;padding:6px 8px;border-radius:6px;border:none;background:transparent;color:var(--text);cursor:pointer}
+
+/* ================== small helpers & extras ================== */
+/* fixed toast */
+.toast{position:fixed;right:18px;bottom:18px;padding:12px 18px;border-radius:12px;background:linear-gradient(90deg,var(--neon),var(--accent-blue));color:#fff;box-shadow:0 12px 40px rgba(0,0,0,0.4);z-index:400}
+.toast.hidden{display:none}
+
+/* small utility */
+.hidden{display:none!important}
+.center{display:flex;align-items:center;justify-content:center}
+.small-muted{font-size:12px;color:rgba(255,255,255,0.65)}
+
+/* ================== Leaflet / map tweaks ================== */
+/* Ensure Leaflet controls sit above card shadows */
+.leaflet-container{background:linear-gradient(180deg,#f6f6f8,#e9e9ef);border-radius:12px}
+.leaflet-control-container{z-index:1000}
+
+/* popup and tooltip styling */
+.leaflet-popup-content-wrapper{border-radius:8px}
+.leaflet-tooltip.bus-label{background:rgba(0,0,0,0.6);color:#fff;border-radius:6px;padding:4px 8px;font-weight:700}
+
+/* ================== animations & micro-interactions ================== */
+.role-card, .route-card, .btn{transition:all .16s ease}
+.route-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,0.35)}
+.role-card:hover .role-icon{transform:scale(1.04)}
+
+/* ================== responsive ================== */
+@media (max-width:980px){
+  .hero-inner{flex-direction:column;align-items:flex-start}
+  .role-cards{flex-direction:column;gap:14px}
+  .passenger-map-layout{flex-direction:column;height:auto}
+  .leaflet-map{height:var(--map-height-sm)}
+  .driver-map{height:48vh}
+  .admin-left{width:100%}
+  .container{width:96%}
+}
+
+@media (max-width:640px){
+  .brand-text{font-size:16px}
+  .hero-title{font-size:28px}
+  .role-icon{width:62px;height:62px;font-size:24px}
+  .route-card{padding:12px}
+  .leaflet-map{height:44vh}
+}
+
+/* ================== backward compat selectors (from old CSS) ================== */
+/* include selectors present in older CSS so legacy markup still looks good */
+.big-buttons{display:flex;gap:12px;justify-content:center;margin-top:24px}
+.big-btn{padding:18px 28px;border-radius:12px;border:none;background:linear-gradient(135deg,#ff7bd3 0%,#7a5fff 100%);color:#fff;font-weight:700;cursor:pointer}
+.big-btn.alt{background:linear-gradient(135deg,#00c2ff,#7effa1)}
+.big-btn.alt2{background:linear-gradient(135deg,#ffb86b,#ff9ad5)}
+.logo{font-size:40px;text-align:center;margin-top:40px;color:#fff}
+.logo span{font-weight:700}
+.muted{color:rgba(255,255,255,0.85);text-align:center}
+/* Passenger map layout: left sidebar + right map */
+.passenger-map-layout {
+  display: flex;
+  gap: 18px;
+  align-items: stretch;
+  width: 100%;
+}
+
+/* Left column (sidebar with bus list & reviews) */
+.passenger-map-layout .sidebar {
+  flex: 0 0 340px;        /* fixed width for sidebar */
+  max-width: 340px;
+  min-width: 260px;
+  z-index: 1200;          /* above map tiles and markers */
+  position: relative;     /* so inner review panel can be positioned inside */
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+/* Right column (map) */
+.passenger-map-layout .map-wrap {
+  flex: 1 1 auto;
+  position: relative;
+  min-height: 520px;      /* keep a reasonable height */
+}
+
+/* Ensure Leaflet canvas is behind the sidebar visually */
+.leaflet-container {
+  z-index: 0;
+}
+
+/* If you use an overlay review panel inside sidebar */
+.reviews-panel {
+  position: relative;
+  z-index: 1250;          /* make sure it sits above map tiles */
+  background: rgba(18,12,32,0.6);
+  padding: 14px;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+}
+
+/* If you still have a floating/absolute review popup, force it into the sidebar */
+.reviews-panel.floating {
+  position: absolute;
+  left: 16px;
+  top: 60px;
+  width: calc(100% - 32px);
+}
+
+
+/* legacy left/right layout for older index.html variants */
+.content{display:flex;height:calc(100vh - 56px)}
+.left{width:320px;padding:18px;background:linear-gradient(180deg,#f69ad9,#c17fff);color:#fff;overflow:auto}
+.right{flex:1;position:relative}
+.map{position:absolute;inset:18px;border-radius:10px;overflow:hidden;background:#eee}
+
+/* legacy driver/admin card layout that existed before */
+.card.small{padding:8px;border-radius:8px}
+.row{display:flex;gap:8px;margin-top:8px}
+.admin-route-controls button{margin-right:6px;padding:4px 6px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer}
+
+/* ensure file input, image previews, and small components look sensible */
+.preview-img{max-width:120px;height:auto;border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-left:8px}
+
+/* ================== end ================== */
+/* in styles.css - ensure the map container always has height */
+.leaflet-map {
+  width: 100%;
+  height: var(--map-height-lg, 72vh) !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+@media (max-width:980px){
+  .leaflet-map { height: var(--map-height-sm, 52vh) !important; }
+}
