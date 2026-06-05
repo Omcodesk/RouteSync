@@ -2,8 +2,16 @@
    Replace your existing frontend app.js with this file.
 */
 
-const API_BASE = (window.__API_BASE__ || 'http://localhost:3000') + '/api';
-const SOCKET_IO_URL = (window.__SOCKET_URL__ || 'http://localhost:3000');
+const ORIGIN = window.__API_BASE__ || window.location.origin;
+const API_BASE = ORIGIN + '/api';
+const SOCKET_IO_URL = window.__SOCKET_URL__ || window.location.origin;
+const USE_POLLING_ONLY = window.__USE_POLLING_ONLY__ || /vercel\.app$/i.test(window.location.hostname);
+
+/** Demo accounts shown to resume reviewers on the home page and login modal */
+const DEMO_CREDENTIALS = {
+  driver: { email: 'demo-driver@routesync.app', password: 'demo1234' },
+  admin: { email: 'demo-admin@routesync.app', password: 'demo1234' },
+};
 // If true, the local simulator will also POST /driver/update each step (may be heavy).
 const SIM_POST_UPDATES = false;
 
@@ -129,6 +137,7 @@ async function panelLoadReviewsForBus(busId) {
 
 /* ---------- Socket & routes ---------- */
 function initSocket() {
+  if (USE_POLLING_ONLY) { console.log('Polling-only mode (no Socket.IO)'); return; }
   if (typeof io === 'undefined') { console.warn('socket.io client not present'); return; }
   if (socket && socket.connected) return;
   socket = io(SOCKET_IO_URL, { transports: ['websocket', 'polling'] });
@@ -697,7 +706,7 @@ function stopSimulatorLocal() {
 
 /* ---------- Driver controls ---------- */
 function initDriver() { initDriverMap(); loadRoutesAndDraw(); startPolling(); if (!socket) initSocket(); }
-function initAdmin() { initAdminMap(); loadRoutesAndDraw(); if (!socket) initSocket(); }
+function initAdmin() { initAdminMap(); loadRoutesAndDraw(); startPolling(); if (!USE_POLLING_ONLY && !socket) initSocket(); }
 function startPassengerFlow() { initPassengerMap(); loadRoutesAndDraw(); startPolling(); if (!socket) initSocket(); }
 
 function initPassengerMap() {
@@ -878,6 +887,25 @@ function openLoginModal(role = 'passenger') {
   document.getElementById('login-role-badge').innerHTML = role === 'driver' ? '<i class="fa-solid fa-tachograph-digital"></i>' : role === 'admin' ? '<i class="fa-solid fa-map-location"></i>' : '<i class="fa-solid fa-people-roof"></i>';
   document.getElementById('login-title').innerText = role.charAt(0).toUpperCase() + role.slice(1) + ' Login';
   loginModal.dataset.role = role;
+
+  const hint = document.getElementById('login-demo-hint');
+  const creds = DEMO_CREDENTIALS[role];
+  if (hint && creds) {
+    hint.classList.remove('hidden');
+    document.getElementById('login-demo-email').textContent = creds.email;
+    document.getElementById('login-demo-pass').textContent = creds.password;
+  } else if (hint) {
+    hint.classList.add('hidden');
+  }
+}
+
+function fillLoginForm(role) {
+  const creds = DEMO_CREDENTIALS[role];
+  if (!creds) return;
+  const emailEl = document.getElementById('login-email');
+  const passEl = document.getElementById('login-password');
+  if (emailEl) emailEl.value = creds.email;
+  if (passEl) passEl.value = creds.password;
 }
 function closeLoginModal() { if (loginModal) loginModal.classList.add('hidden'); }
 document.getElementById('login-close')?.addEventListener('click', closeLoginModal);
@@ -888,6 +916,21 @@ document.querySelectorAll('.role-cta').forEach(b => {
   b.addEventListener('click', (e) => {
     const role = e.currentTarget.dataset.role;
     if (role === 'passenger') { switchTo('passenger'); } else { openLoginModal(role); }
+  });
+});
+
+document.getElementById('login-demo-fill')?.addEventListener('click', () => {
+  const role = loginModal?.dataset?.role;
+  if (role) fillLoginForm(role);
+});
+
+document.querySelectorAll('.demo-fill-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const role = btn.dataset.demoRole;
+    if (!role) return;
+    fillLoginForm(role);
+    openLoginModal(role);
+    toast('Demo credentials filled — click Sign In', 2500);
   });
 });
 

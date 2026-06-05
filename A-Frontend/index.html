@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RouteSync — Real-Time Transit Tracking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="#" class="brand" id="nav-home-brand">
+          <div class="logo-badge">RS</div>
+          <div class="brand-text">Route<span>Sync</span></div>
+        </a>
+        <nav class="top-nav">
+          <button type="button" id="nav-home" class="nav-btn active">Home</button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- HOME -->
+    <main id="home" class="page active">
+      <section class="hero container">
+        <div class="hero-content">
+          <span class="pill">Live transit platform</span>
+          <h1 class="hero-title">Track buses in real time.<br />Manage routes with confidence.</h1>
+          <p class="hero-sub">RouteSync connects passengers, drivers, and admins on one modern platform with live maps, ETAs, and route management.</p>
+        </div>
+        <div class="role-cards">
+          <article class="role-card">
+            <div class="role-icon role-icon-passenger"><i class="fa-solid fa-people-roof"></i></div>
+            <h3>Passenger</h3>
+            <p>View routes, track active buses, and see arrival times — no login required.</p>
+            <ul class="role-features"><li>Live tracking</li><li>Route ETAs</li><li>Reviews</li></ul>
+            <button type="button" class="btn btn-primary role-cta" data-role="passenger">Enter as Passenger</button>
+          </article>
+          <article class="role-card">
+            <div class="role-icon role-icon-driver"><i class="fa-solid fa-bus"></i></div>
+            <h3>Driver</h3>
+            <p>Start trips, broadcast location, and keep passengers informed along your route.</p>
+            <ul class="role-features"><li>Trip controls</li><li>Live updates</li><li>Route map</li></ul>
+            <button type="button" class="btn btn-primary role-cta" data-role="driver">Enter as Driver</button>
+          </article>
+          <article class="role-card">
+            <div class="role-icon role-icon-admin"><i class="fa-solid fa-map-location-dot"></i></div>
+            <h3>Admin</h3>
+            <p>Draw routes on the map, edit details, and manage your transit network.</p>
+            <ul class="role-features"><li>Draw routes</li><li>Search & edit</li><li>Statistics</li></ul>
+            <button type="button" class="btn btn-primary role-cta" data-role="admin">Enter as Admin</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="container demo-access">
+        <div class="card demo-access-card">
+          <div class="demo-access-header">
+            <i class="fa-solid fa-briefcase"></i>
+            <div>
+              <h2>Demo access for reviewers</h2>
+              <p class="muted">Use these credentials to explore Driver and Admin panels. Passenger access needs no login.</p>
+            </div>
+          </div>
+          <div class="demo-cred-grid">
+            <div class="demo-cred-block">
+              <h3><i class="fa-solid fa-bus"></i> Driver</h3>
+              <dl><div><dt>Email</dt><dd><code>demo-driver@routesync.app</code></dd></div><div><dt>Password</dt><dd><code>demo1234</code></dd></div></dl>
+              <button type="button" class="btn btn-secondary demo-fill-btn" data-demo-role="driver">Use & open login</button>
+            </div>
+            <div class="demo-cred-block">
+              <h3><i class="fa-solid fa-shield-halved"></i> Admin</h3>
+              <dl><div><dt>Email</dt><dd><code>demo-admin@routesync.app</code></dd></div><div><dt>Password</dt><dd><code>demo1234</code></dd></div></dl>
+              <button type="button" class="btn btn-secondary demo-fill-btn" data-demo-role="admin">Use & open login</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- PASSENGER -->
+    <section id="passenger" class="page">
+      <div class="page-header container">
+        <button type="button" class="btn btn-ghost back" data-to="home"><i class="fa-solid fa-arrow-left"></i> Home</button>
+        <div><h2>Passenger</h2><p class="muted">Select a route to track active buses</p></div>
+      </div>
+      <div id="passenger-list-view" class="container">
+        <div id="routes-grid" class="routes-grid"></div>
+      </div>
+      <div id="passenger-map-page" class="hidden">
+        <div class="passenger-map-layout container">
+          <aside class="sidebar card">
+            <button type="button" class="btn btn-ghost btn-sm back" data-to="passenger-list"><i class="fa-solid fa-arrow-left"></i> Routes</button>
+            <div id="bus-list" class="bus-list"></div>
+          </aside>
+          <div class="map-wrap card">
+            <div id="passenger-map-loading" class="map-loading hidden">
+              <div class="spinner"></div>
+              <span>Loading map…</span>
+            </div>
+            <div id="passenger-map" class="leaflet-map"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DRIVER -->
+    <section id="driver" class="page">
+      <div class="page-header container">
+        <button type="button" class="btn btn-ghost back" data-to="home"><i class="fa-solid fa-arrow-left"></i> Home</button>
+        <div><h2>Driver Dashboard</h2><p class="muted">Manage trips and broadcast your location</p></div>
+      </div>
+      <div class="driver-layout container">
+        <aside class="driver-sidebar">
+          <div class="card trip-card">
+            <div class="trip-card-head">
+              <h3>Current trip</h3>
+              <span id="driver-status-badge"></span>
+            </div>
+            <p id="trip-status-text" class="muted small">Off duty</p>
+            <div class="trip-meta">
+              <div><span class="label">Route</span><div id="driver-route-detail" class="value muted">—</div></div>
+              <div><span class="label">Position</span><div id="driver-position-text" class="value mono small">—</div></div>
+              <div><span class="label">ETA</span><div id="driver-eta-text" class="value">—</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Controls</h3>
+            <label class="toggle-row">On duty
+              <span class="switch"><input id="duty-switch" type="checkbox" /><span class="slider"></span></span>
+            </label>
+            <div class="form-grid">
+              <label>Bus ID<input id="bus-id" type="text" value="D1" /></label>
+              <label>Route<select id="driver-route-select"><option value="">Loading…</option></select></label>
+              <label>Occupancy<select id="occupancy"><option>Low</option><option>Half</option><option>Full</option></select></label>
+              <label>Speed (km/h)<input id="speed" type="number" value="25" min="0" /></label>
+            </div>
+            <div class="btn-row">
+              <button type="button" id="start-trip" class="btn btn-success"><i class="fa-solid fa-play"></i> Start Trip</button>
+              <button type="button" id="send-update" class="btn btn-primary"><i class="fa-solid fa-location-crosshairs"></i> Send Update</button>
+              <button type="button" id="end-trip" class="btn btn-danger"><i class="fa-solid fa-stop"></i> End Trip</button>
+            </div>
+            <label class="check-row"><input id="sim-toggle" type="checkbox" /> Auto-track along route</label>
+            <p id="drv-msg" class="muted small" aria-live="polite"></p>
+          </div>
+        </aside>
+        <div class="map-wrap card"><div id="driver-map" class="leaflet-map"></div></div>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="admin" class="page">
+      <div class="page-header container">
+        <button type="button" class="btn btn-ghost back" data-to="home"><i class="fa-solid fa-arrow-left"></i> Home</button>
+        <div><h2>Admin Panel</h2><p class="muted">Create and manage transit routes</p></div>
+      </div>
+      <div class="admin-layout container">
+        <aside class="admin-sidebar card">
+          <div id="admin-stats" class="stats-row"></div>
+          <h3>Routes</h3>
+          <input id="admin-route-search" type="search" placeholder="Search routes…" class="search-input" />
+          <button type="button" id="reload-routes" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate"></i> Reload</button>
+          <p class="muted small">Use the draw tool on the map, then save your route.</p>
+          <ul id="admin-route-list" class="admin-route-list"></ul>
+        </aside>
+        <div class="map-wrap card"><div id="admin-map" class="leaflet-map"></div></div>
+      </div>
+    </section>
+
+    <!-- LOGIN MODAL -->
+    <div id="login-modal" class="modal hidden">
+      <div class="modal-card card">
+        <button type="button" class="modal-close" id="login-close">&times;</button>
+        <h2 id="login-title">Sign in</h2>
+        <p class="muted">Enter your credentials</p>
+        <div id="login-demo-hint" class="login-demo-hint hidden">
+          <p class="small"><strong>Demo</strong></p>
+          <div class="login-demo-row"><code id="login-demo-email">—</code> / <code id="login-demo-pass">—</code></div>
+          <button type="button" id="login-demo-fill" class="btn btn-secondary btn-sm">Fill form</button>
+        </div>
+        <form id="login-form" class="form" onsubmit="return false">
+          <label>Email<input id="login-email" type="email" autocomplete="email" required /></label>
+          <label>Password<input id="login-password" type="password" autocomplete="current-password" required /></label>
+          <button type="button" id="login-submit" class="btn btn-primary btn-block">Sign In</button>
+          <p id="login-msg" class="muted small" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ROUTE SAVE MODAL -->
+    <div id="route-modal" class="modal hidden">
+      <div class="modal-card card">
+        <button type="button" class="modal-close" id="route-modal-close">&times;</button>
+        <h2 id="route-modal-title">Save route</h2>
+        <p id="route-preview-stops" class="muted small"></p>
+        <form class="form" onsubmit="return false">
+          <label>Route name<input id="route-name" type="text" placeholder="e.g. Downtown Express" required /></label>
+          <label>Color<input id="route-color" type="color" value="#2563EB" /></label>
+          <div class="btn-row">
+            <button type="button" id="route-modal-save" class="btn btn-primary">Save route</button>
+            <button type="button" id="route-modal-cancel" class="btn btn-ghost">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

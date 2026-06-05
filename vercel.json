@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/", "destination": "/A-Frontend/index.html" },
+    { "source": "/(.*)", "destination": "/A-Frontend/$1" }
+  ],
+  "crons": [
+    {
+      "path": "/api/demo/tick",
+      "schedule": "* * * * *"
+    }
+  ]
+}
