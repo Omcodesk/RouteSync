@@ -5,10 +5,10 @@
 const fs = require('fs-extra');
 const path = require('path');
 
-const USE_REDIS = !!(
-  process.env.UPSTASH_REDIS_REST_URL &&
-  process.env.UPSTASH_REDIS_REST_TOKEN
-);
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+const USE_REDIS = !!(UPSTASH_URL && UPSTASH_TOKEN);
 
 const DATA_DIR = path.join(__dirname, '..');
 const ROUTES_FILE = path.join(DATA_DIR, 'routes.json');
@@ -21,7 +21,10 @@ let redis = null;
 
 if (USE_REDIS) {
   const { Redis } = require('@upstash/redis');
-  redis = Redis.fromEnv();
+  redis = new Redis({
+    url: UPSTASH_URL,
+    token: UPSTASH_TOKEN,
+  });
 }
 
 async function ensureFiles() {
