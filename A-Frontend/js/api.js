@@ -48,9 +48,12 @@ export async function fetchBuses() {
 }
 
 export async function postDriverUpdate(payload) {
+  const token = localStorage.getItem('tt_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}/driver/update`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(payload),
   });
   const json = await res.json().catch(() => ({}));

@@ -1,5 +1,4 @@
 /** Application bootstrap */
-import { API_BASE, USE_POLLING_ONLY } from './config.js';
 import { state } from './state.js';
 import { fetchRoutes } from './api.js';
 import { bindAuthUI } from './auth.js';
@@ -54,17 +53,9 @@ window.__refreshRoutes = async () => {
   if (state.activePage === 'passenger') refreshPassengerData();
 };
 
-function startVercelDemoMotion() {
-  if (!USE_POLLING_ONLY) return;
-  const tick = () => fetch(`${API_BASE}/demo/tick`).catch(() => {});
-  tick();
-  setInterval(tick, 120000);
-}
-
 window.addEventListener('load', () => {
   bindNavigation();
   bindReviews();
-  startVercelDemoMotion();
   bindAuthUI((role) => {
     if (role === 'passenger') switchTo('passenger');
     else if (role === 'driver') switchTo('driver');

@@ -9,10 +9,19 @@ const { v4: uuidv4 } = require('uuid');
 const store = require('./lib/store');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change_me';
+const IS_PRODUCTION = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
 const DEMO_AUTO_VERIFY = (process.env.DEMO_AUTO_VERIFY || 'true') === 'true';
 const DEFAULT_SPEED_KMH = Number(process.env.DEFAULT_SPEED_KMH || 20);
-const ALLOW_PUBLIC_ROUTES = (process.env.ALLOW_PUBLIC_ROUTES || 'false') === 'true';
+const ALLOW_PUBLIC_REGISTER = (process.env.ALLOW_PUBLIC_REGISTER || 'false') === 'true';
 const CRON_SECRET = process.env.CRON_SECRET || '';
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+if (IS_PRODUCTION && (!process.env.JWT_SECRET || JWT_SECRET === 'change_me')) {
+  console.warn('[RouteSync] WARNING: Set a strong JWT_SECRET in production.');
+}
 
 function normalizeTripStatus(status, etaSeconds) {
   if (etaSeconds === 0) return 'completed';
@@ -184,34 +193,62 @@ async function runDemoTick() {
   return { ok: true, updated };
 }
 
+function getBearerUser(req) {
+  const h = req.headers.authorization || '';
+  if (!h.startsWith('Bearer ')) return null;
+  return verifyJwt(h.slice(7).trim());
+}
+
 function createApp(options = {}) {
   const { io = null } = options;
   const app = express();
-  app.use(cors());
+  app.use(cors({
+    origin: ALLOWED_ORIGINS.length
+      ? (origin, cb) => {
+        if (!origin || ALLOWED_ORIGINS.includes(origin)) cb(null, true);
+        else cb(new Error('Not allowed by CORS'));
+      }
+      : true,
+  }));
   app.use(express.json({ limit: '1mb' }));
 
   function emit(event, payload) {
     if (io) io.emit(event, payload);
   }
 
-  async function ensureAdmin(req) {
-    if (ALLOW_PUBLIC_ROUTES) return { ok: true };
-    const h = req.headers.authorization;
-    if (!h) return { ok: false, status: 401, msg: 'missing authorization' };
-    const token = h.split(' ')[1];
-    const user = verifyJwt(token);
-    if (!user) return { ok: false, status: 401, msg: 'invalid token' };
-    if (user.role !== 'admin') return { ok: false, status: 403, msg: 'forbidden' };
+  function ensureAdmin(req) {
+    const user = getBearerUser(req);
+    if (!user) return { ok: false, status: 401, msg: 'admin login required' };
+    if (user.role !== 'admin') return { ok: false, status: 403, msg: 'admin only' };
+    return { ok: true, user };
+  }
+
+  function ensureDriver(req) {
+    const user = getBearerUser(req);
+    if (!user) return { ok: false, status: 401, msg: 'driver login required' };
+    if (user.role !== 'driver' && user.role !== 'admin') {
+      return { ok: false, status: 403, msg: 'driver or admin only' };
+    }
     return { ok: true, user };
   }
 
   app.post('/api/auth/register', async (req, res) => {
-    const { email, password, role = 'driver' } = req.body;
+    if (!ALLOW_PUBLIC_REGISTER) {
+      return res.status(403).json({ msg: 'registration disabled' });
+    }
+    const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ msg: 'email & password required' });
+    if (password.length < 6) return res.status(400).json({ msg: 'password must be at least 6 characters' });
     const users = await store.readUsersObj();
     if (users[email]) return res.status(400).json({ msg: 'user exists' });
     const hash = await bcrypt.hash(password, 10);
-    users[email] = { id: uuidv4(), email, passwordHash: hash, role, verified: DEMO_AUTO_VERIFY };
+    users[email] = {
+      id: uuidv4(),
+      email,
+      passwordHash: hash,
+      role: 'driver',
+      verified: DEMO_AUTO_VERIFY,
+    };
     await store.writeUsersObj(users);
     res.json({ msg: 'registered', verified: users[email].verified });
   });
@@ -284,6 +321,9 @@ function createApp(options = {}) {
     const busId = String(req.params.id);
     const { rating, comment, author } = req.body;
     if (!rating || !comment) return res.status(400).json({ error: 'rating and comment required' });
+    if (String(comment).length > 500) return res.status(400).json({ error: 'comment too long' });
+    const r = Number(rating);
+    if (Number.isNaN(r) || r < 1 || r > 5) return res.status(400).json({ error: 'rating must be 1-5' });
     const all = await store.readReviewsObj();
     if (!Array.isArray(all[busId])) all[busId] = [];
     const review = {
@@ -298,7 +338,12 @@ function createApp(options = {}) {
   });
 
   app.post('/api/driver/update', async (req, res) => {
-    const busObj = await buildBusUpdate(req.body || {});
+    const check = ensureDriver(req);
+    if (!check.ok) return res.status(check.status).json({ msg: check.msg });
+    const busObj = await buildBusUpdate({
+      ...(req.body || {}),
+      driverEmail: check.user.email,
+    });
     if (!busObj) return res.status(400).json({ msg: 'busId, lat, lng required' });
     await store.setBus(busObj.busId, busObj);
     emit('bus_update', busObj);
@@ -310,7 +355,8 @@ function createApp(options = {}) {
   });
 
   app.get('/api/demo/tick', async (req, res) => {
-    if (CRON_SECRET) {
+    if (IS_PRODUCTION) {
+      if (!CRON_SECRET) return res.status(503).json({ msg: 'demo tick disabled' });
       const auth = req.headers.authorization || '';
       const token = auth.startsWith('Bearer ') ? auth.slice(7) : req.headers['x-cron-secret'];
       if (token !== CRON_SECRET) return res.status(401).json({ msg: 'unauthorized' });

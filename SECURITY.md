@@ -2,34 +2,67 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| `main`  | :white_check_mark: |
+| Version | Supported |
+|---------|-----------|
+| `main`  | Yes |
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in RouteSync, please report it responsibly.
+Email **omchaddha7@gmail.com** — do **not** open public GitHub issues for security reports.
 
-**Do not** open a public GitHub issue for security-sensitive reports.
+---
 
-Instead, email **omchaddha7@gmail.com** with:
+## What Is Protected
 
-- A description of the vulnerability
-- Steps to reproduce
-- Potential impact
-- Suggested fix (if any)
+| Endpoint | Auth required | Who can access |
+|----------|---------------|----------------|
+| `GET /api/routes` | No | Everyone (passenger demo) |
+| `GET /api/buses` | No | Everyone |
+| `GET /api/buses/:id/reviews` | No | Everyone |
+| `POST /api/auth/login` | No | Everyone |
+| `POST /api/auth/register` | No* | Only if `ALLOW_PUBLIC_REGISTER=true` |
+| `POST /api/routes` | **Yes** | Admin JWT only |
+| `PUT /api/routes/:id` | **Yes** | Admin JWT only |
+| `DELETE /api/routes/:id` | **Yes** | Admin JWT only |
+| `POST /api/driver/update` | **Yes** | Driver or Admin JWT |
+| `POST /api/buses/:id/reviews` | No | Everyone (rate-limited by validation) |
+| `GET /api/demo/tick` | **Yes** (production) | `CRON_SECRET` header only |
 
-You can expect an initial response within **72 hours**.
+\* Registration always creates **driver** accounts only — admin role cannot be self-assigned.
 
-## Security Notes
+---
 
-- Never commit `.env` files, API keys, or `JWT_SECRET` values to the repository.
-- Use strong, unique `JWT_SECRET` values in production.
-- Demo credentials (`demo1234`) are for portfolio demos only — change them in production deployments.
-- On Vercel, use environment variables for all secrets; do not hardcode credentials in source files.
+## Secrets — Never Commit
 
-## Known Considerations
+| Secret | Where to set |
+|--------|--------------|
+| `JWT_SECRET` | Vercel env vars / local `.env` |
+| `UPSTASH_REDIS_*` | Vercel Marketplace |
+| `CRON_SECRET` | Vercel env vars |
+| Personal passwords | Never in repo |
 
-- `ALLOW_PUBLIC_ROUTES=true` exposes route data without authentication (intentional for demo).
-- Bus driver updates (`POST /api/driver/update`) are open in the current demo configuration.
-- Redis credentials should only be set via Vercel environment variables or local `.env` (gitignored).
+**Safe in repo:** bcrypt password **hashes** in `backend/users.json` (demo accounts only), `.env.example` placeholders.
+
+**Gitignored:** `.env`, `backend/.env`, all `node_modules/`
+
+---
+
+## Production Checklist (Vercel)
+
+- [ ] `JWT_SECRET` — long random string (not `change_me`)
+- [ ] `ALLOW_PUBLIC_REGISTER=false`
+- [ ] `CRON_SECRET` set if using demo bus tick
+- [ ] Upstash Redis connected
+- [ ] Demo passwords (`demo1234`) are intentional for portfolio — change for real production
+
+---
+
+## Demo vs Production
+
+This project is configured as a **portfolio demo**. Demo credentials are shown on the home page by design. For a real transit deployment you would:
+
+- Disable public registration
+- Rotate demo passwords
+- Add rate limiting
+- Use HTTPS only (Vercel provides this)
+- Restrict CORS via `ALLOWED_ORIGINS`
