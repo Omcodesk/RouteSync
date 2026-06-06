@@ -11,11 +11,14 @@ const store = require('./lib/store');
 
 const PORT = Number(process.env.PORT || 3000);
 const FRONTEND_DIR = path.join(__dirname, '..', 'A-Frontend');
+const ROOT_DIR = path.join(__dirname, '..');
 
 const server = http.createServer();
 const io = new Server(server, { cors: { origin: '*' } });
 const app = createApp({ io });
 
+app.use('/vendor/leaflet', express.static(path.join(FRONTEND_DIR, 'vendor', 'leaflet')));
+app.use('/vendor/leaflet-draw', express.static(path.join(FRONTEND_DIR, 'vendor', 'leaflet-draw')));
 app.use(express.static(FRONTEND_DIR));
 app.get('/', (req, res) => {
   res.sendFile(path.join(FRONTEND_DIR, 'index.html'));

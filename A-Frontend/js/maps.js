@@ -2,6 +2,7 @@
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, PALETTE } from './config.js';
 import { state } from './state.js';
 import { normalizeCoordinates } from './utils.js';
+import { ensureLeafletDraw } from './loadVendor.js';
 
 export const maps = {
   passenger: null,
@@ -93,8 +94,9 @@ export function initDriverMap() {
   return maps.driver;
 }
 
-export function initAdminMap(onRouteDrawn) {
+export async function initAdminMap(onRouteDrawn) {
   if (maps.admin) return maps.admin;
+  await ensureLeafletDraw();
   maps.admin = baseMap('admin-map');
   const drawnItems = new L.FeatureGroup();
   maps.admin.addLayer(drawnItems);

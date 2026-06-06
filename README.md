@@ -53,19 +53,23 @@ npm start
 
 ## Deploy to Vercel
 
-1. Push this repo to GitHub.
-2. Import the project at [vercel.com](https://vercel.com).
-3. Add **Upstash Redis** from the Vercel Marketplace (Storage tab) — this sets `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
-4. Set environment variables:
+1. Push this repo to GitHub (Vercel auto-deploys on push if connected).
+2. In [vercel.com](https://vercel.com) → your project → **Settings → Environment Variables**, set:
 
-| Variable | Value |
-|----------|-------|
-| `JWT_SECRET` | A long random string |
-| `ALLOW_PUBLIC_ROUTES` | `true` (recommended for demo) |
-| `DEMO_AUTO_VERIFY` | `true` |
-| `CRON_SECRET` | Optional — secures `/api/demo/tick` |
+| Variable | Value | Required |
+|----------|-------|----------|
+| `JWT_SECRET` | Long random string | Yes |
+| `UPSTASH_REDIS_REST_URL` | From Upstash integration | Yes |
+| `UPSTASH_REDIS_REST_TOKEN` | From Upstash integration | Yes |
+| `ALLOW_PUBLIC_ROUTES` | `true` | Yes (demo) |
+| `DEMO_AUTO_VERIFY` | `true` | Yes (demo) |
+| `CRON_SECRET` | Random string | Recommended |
 
-5. Deploy. Vercel Cron (in `vercel.json`) moves demo buses every minute.
+3. Add **Upstash Redis** from Vercel Marketplace (Storage tab) if not already linked.
+4. Redeploy. Build runs `npm run vercel-build` to bundle Leaflet locally (no CDN).
+5. Demo buses move automatically on Vercel (frontend calls `/api/demo/tick` every 2 min — no Cron job needed on Hobby plan).
+
+**Vercel vs local:** Socket.IO is disabled on `*.vercel.app` — the app uses HTTP polling (same UI, same dashboards).
 
 ---
 

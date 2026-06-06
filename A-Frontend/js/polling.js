@@ -4,6 +4,7 @@ import { state, getRunningBusesForRoute } from './state.js';
 import { fetchBuses } from './api.js';
 import { refreshPassengerData, renderBusList, tickPassengerEtas } from './passenger.js';
 import { updatePassengerMarkers } from './maps.js';
+import { ensureSocketIO } from './loadVendor.js';
 
 export function startSmartPolling() {
   stopSmartPolling();
@@ -37,9 +38,15 @@ async function pollOnce() {
   }
 }
 
-export function initSocket(onBusUpdate) {
-  if (USE_POLLING_ONLY || typeof io === 'undefined') return;
+export async function initSocket(onBusUpdate) {
+  if (USE_POLLING_ONLY) return;
   if (state.socket?.connected) return;
+  try {
+    await ensureSocketIO();
+  } catch (_) {
+    return;
+  }
+  if (typeof io === 'undefined') return;
   state.socket = io(SOCKET_IO_URL, { transports: ['websocket', 'polling'] });
   state.socket.on('bus_update', onBusUpdate);
   state.socket.on('routes:updated', () => window.__refreshRoutes?.());

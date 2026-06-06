@@ -6,8 +6,8 @@ import { escapeHtml, toast, normalizeCoordinates } from './utils.js';
 
 let pendingDrawCoords = null;
 
-export function initAdminPanel() {
-  initAdminMap((coords) => openRouteModal(coords));
+export async function initAdminPanel() {
+  await initAdminMap((coords) => openRouteModal(coords));
   bindAdminEvents();
   refreshAdminRoutes(true);
   invalidateMap(maps.admin);

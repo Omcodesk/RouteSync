@@ -78,8 +78,19 @@ export async function openPassengerRoute(id) {
   ensurePassengerMap();
   invalidateMap(maps.passenger);
 
+  const hasRoute = !!state.routes[routeId]?.coordinates?.length;
+  const dataPromise = hasRoute
+    ? Promise.all([fetchBuses(), fetchRoutes()])
+    : Promise.all([fetchRoutes(true), fetchBuses()]);
+
+  if (hasRoute) {
+    drawPassengerRoute(routeId);
+    loading?.classList.add('hidden');
+    invalidateMap(maps.passenger, () => fitPassengerRoute(routeId));
+  }
+
   try {
-    await Promise.all([fetchRoutes(true), fetchBuses()]);
+    await dataPromise;
   } catch (e) {
     console.error('passenger route load', e);
     loading?.classList.add('hidden');
@@ -92,16 +103,18 @@ export async function openPassengerRoute(id) {
     return;
   }
 
-  drawPassengerRoute(routeId);
+  if (!hasRoute) {
+    drawPassengerRoute(routeId);
+    loading?.classList.add('hidden');
+  }
 
   const running = getRunningBusesForRoute(routeId);
   renderBusList(running);
+  updatePassengerMarkers(running);
 
-  invalidateMap(maps.passenger, () => {
-    fitPassengerRoute(routeId);
-    updatePassengerMarkers(running);
-    loading?.classList.add('hidden');
-  });
+  if (!hasRoute) {
+    invalidateMap(maps.passenger, () => fitPassengerRoute(routeId));
+  }
 }
 
 export function closePassengerRoute() {
