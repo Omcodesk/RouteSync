@@ -1,15 +1,18 @@
 const serverless = require('serverless-http');
 const { createApp, ensureReady } = require('../backend/createApp');
 
-let handler;
-let ready;
+const app = createApp({ io: null });
 
-module.exports = async (req, res) => {
-  if (!ready) {
-    await ensureReady();
-    const app = createApp({ io: null });
-    handler = serverless(app);
-    ready = true;
+let ready = ensureReady();
+
+app.use(async (req, res, next) => {
+  try {
+    await ready;
+    next();
+  } catch (err) {
+    console.error('ensureReady failed:', err);
+    res.status(503).json({ msg: 'Service initializing, retry shortly' });
   }
-  return handler(req, res);
-};
+});
+
+module.exports = serverless(app);

@@ -328,10 +328,6 @@ function createApp(options = {}) {
 
 async function ensureReady() {
   await store.ensureFiles();
-  if (store.usingRedis()) {
-    await store.readRoutesObj();
-    await store.readUsersObj();
-  }
 }
 
 module.exports = { createApp, ensureReady, runDemoTick };
