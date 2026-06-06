@@ -25,7 +25,8 @@ if (USE_REDIS) {
 }
 
 async function ensureFiles() {
-  if (USE_REDIS) return;
+  // Vercel serverless FS is read-only; seed files are bundled, Redis handles writes in prod.
+  if (USE_REDIS || process.env.VERCEL) return;
   await fs.ensureFile(ROUTES_FILE);
   await fs.ensureFile(USERS_FILE);
   await fs.ensureFile(REVIEWS_FILE);
