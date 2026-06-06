@@ -2,14 +2,14 @@
 
 # 🚌 RouteSync
 
-### *Real-Time Transit Tracking Platform*
+### *Enterprise-Grade Real-Time Transit Tracking Platform*
 
-**Live maps · Role-based dashboards · Near real-time bus updates**
+**Live Geospatial Mapping · Role-Based Access Control · Serverless Architecture**
 
 <br/>
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-route--sync--five.vercel.app-2563EB?style=for-the-badge&logo=vercel&logoColor=white)](https://route-sync-five.vercel.app)
-[![License](https://img.shields.io/badge/📄_License-MIT-22C55E?style=for-the-badge)](LICENSE)
+[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Node.js](https://img.shields.io/badge/⚡_Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/🚀_Express-API-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![Vercel](https://img.shields.io/badge/▲_Deployed-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://route-sync-five.vercel.app)
@@ -33,40 +33,69 @@
 
 ## 📋 Table of Contents
 
-- [About](#-about)
-- [Live Demo](#-live-demo)
-- [Key Highlights](#-key-highlights)
-- [Features](#-features)
+- [Overview](#-overview)
+- [System Architecture](#-system-architecture)
+- [Engineering Highlights](#-engineering-highlights)
+- [Live Demo & Sandbox](#-live-demo--sandbox)
+- [Role-Based Access Control (RBAC)](#-role-based-access-control-rbac)
 - [Tech Stack](#-tech-stack)
-- [Architecture](#-architecture)
-- [Screenshots](#-screenshots)
-- [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [Deploy to Vercel](#-deploy-to-vercel)
-- [Project Structure](#-project-structure)
+- [Getting Started (Local Development)](#-getting-started-local-development)
+- [Deployment (Vercel)](#-deployment-vercel)
 - [API Reference](#-api-reference)
-- [Skills Demonstrated](#-skills-demonstrated)
-- [Resume Snippet](#-resume-snippet)
 - [Author](#-author)
-- [License](#-license)
 
 ---
 
-## 🎯 About
+## 🎯 Overview
 
-**RouteSync** is a production-style **full-stack bus tracking web application** designed for three user roles — **Passengers**, **Drivers**, and **Admins**. It delivers interactive **Leaflet maps**, a **JWT-secured REST API**, and **live bus location updates** in a single deployable platform.
+**RouteSync** is a production-style, full-stack transit tracking platform engineered to solve the challenges of real-time geospatial data synchronization. Designed to support three distinct user personas (Passengers, Drivers, and System Administrators), the application delivers interactive maps, a securely authenticated RESTful API, and near real-time GPS telemetry broadcasting.
 
-Built as a portfolio-grade project showcasing real-world patterns: modular frontend architecture, dual-mode persistence, serverless deployment, and role-based access control — **no XAMPP required**.
-
-| 👤 Role | 🛠️ Capabilities |
-|--------|----------------|
-| 🧑‍🤝‍🧑 **Passenger** | Browse routes, track active buses, view ETAs & reviews — **no login** |
-| 🚍 **Driver** | Start/end trips, broadcast GPS, auto-track along saved routes |
-| 🛡️ **Admin** | Draw routes on map, search / edit / delete routes, network stats |
+Built as a comprehensive portfolio piece, RouteSync demonstrates mastery of modern web architecture patterns, including modular frontend design, dual-mode data persistence, serverless deployment, and strict role-based access control.
 
 ---
 
-## 🌐 Live Demo
+## 🏗️ System Architecture
+
+RouteSync employs a robust, environment-aware architecture designed for both rapid local development and scalable edge deployment. 
+
+```mermaid
+flowchart TB
+  subgraph Client ["🌐 Client Layer (Browser)"]
+    UI["Vanilla ES Modules<br/>State Management"]
+    Maps["🗺️ Leaflet Geospatial UI"]
+    UI --> Maps
+  end
+
+  subgraph Local ["💻 Local Development Environment"]
+    UI -->|"REST + WebSockets (Socket.IO)"| Express["Node.js / Express<br/>API Gateway"]
+    Express --> Files[("📁 Local JSON Persistence")]
+  end
+
+  subgraph Prod ["☁️ Production Environment (Vercel)"]
+    UI -->|"REST + HTTP Polling"| API["Serverless Functions<br/>(Edge Optimized)"]
+    API --> Redis[("💾 Upstash Redis Cluster")]
+  end
+```
+
+### Key Architectural Decisions
+- **Dual-Mode Persistence Layer:** The application dynamically detects its execution environment. In local development, it utilizes file-system JSON storage for zero-configuration startup. When deployed to Vercel, it seamlessly transitions to a highly available **Upstash Redis** cluster to support the ephemeral, read-only nature of serverless functions.
+- **Protocol Fallbacks:** Real-time data streams via `Socket.IO` during local execution, but gracefully degrades to intelligent HTTP polling in serverless environments where persistent socket connections are unsupported.
+- **Zero-Build Frontend:** The frontend eschews complex build steps in favor of native ES Modules, drastically reducing deployment times while maintaining strict modularity and separation of concerns.
+
+---
+
+## ⭐ Engineering Highlights
+
+- 🗺️ **Geospatial Processing:** Interactive Leaflet maps with dynamic route polylines, auto-calculating bounding boxes, and real-time coordinate validation.
+- 🔐 **Stateless Authentication:** Secure JWT-based authentication flow with `bcrypt` password hashing, ensuring secure token issuance without session overhead.
+- ⏱️ **Algorithmic ETA Calculation:** Real-time predictive ETAs computed on the backend using the Haversine formula to calculate the distance between active bus coordinates and the remaining route polyline.
+- 🛡️ **Defensive API Design:** Comprehensive backend validation to prevent malformed coordinate injection, unauthorized route mutations, and abuse.
+
+---
+
+## 🌐 Live Demo & Sandbox
+
+I have deployed a live "Sandbox" environment tailored for recruiters and technical reviewers. 
 
 <div align="center">
 
@@ -76,258 +105,93 @@ Built as a portfolio-grade project showcasing real-world patterns: modular front
 
 ### 🔑 Demo Credentials
 
-| Panel | 📧 Email | 🔒 Password |
+| Role | Email | Password |
 |-------|----------|------------|
-| 🚍 Driver | `demo-driver@routesync.app` | `demo1234` |
-| 🛡️ Admin | `demo-admin@routesync.app` | `demo1234` |
+| 🚍 **Driver** | `demo-driver@routesync.app` | `demo1234` |
+| 🛡️ **Admin** | `demo-admin@routesync.app` | `demo1234` |
 
-> 💡 **Passenger** access works instantly — no sign-in needed.
-
----
-
-## ⭐ Key Highlights
-
-| | |
-|---|---|
-| 🗺️ | **Interactive maps** with route polylines, live bus markers & auto fit-bounds |
-| 🔐 | **JWT authentication** with bcrypt-hashed passwords & role-based panels |
-| 📡 | **Real-time updates** via Socket.IO (local) or HTTP polling (Vercel) |
-| 🏗️ | **Modular ES module frontend** — passenger, driver, admin, maps, API layers |
-| ☁️ | **Serverless-ready** — Vercel static hosting + Express API function |
-| 💾 | **Dual storage** — local JSON for dev, Upstash Redis for production |
-| ⚡ | **One-command dev** — `npm start` serves UI + API on port `3000` |
+> 🔒 **Security Note:** To preserve the integrity of the live demo for all reviewers, the `demo-admin` account is locked into a **Read-Only Mode**. You may access all dashboards, but write operations (`POST`, `PUT`, `DELETE`) to the routing tables will gracefully return a `403 Forbidden`.
 
 ---
 
-## ✨ Features
+## 🛡️ Role-Based Access Control (RBAC)
 
-<details open>
-<summary><b>🧑‍🤝‍🧑 Passenger Panel</b></summary>
+The application strictly enforces permission boundaries across three distinct authorization tiers:
 
-- 🗺️ Route cards with active bus count
-- 📍 Live bus tracking on interactive map
-- ⏱️ Real-time ETA countdown per bus
-- 💬 Bus reviews (read & post)
-- 🚫 No authentication required
-
-</details>
-
-<details open>
-<summary><b>🚍 Driver Dashboard</b></summary>
-
-- 🟢 Trip lifecycle: `Offline → Ready → Active → Completed`
-- 📡 Manual GPS updates or auto-track along route
-- 🗺️ Route highlight & position on map
-- 📊 Occupancy, speed & ETA display
-
-</details>
-
-<details open>
-<summary><b>🛡️ Admin Panel</b></summary>
-
-- ✏️ Draw routes directly on the map (Leaflet.draw)
-- 🔍 Search, preview, edit & delete routes
-- 📈 Route & stop count statistics
-- ✅ Coordinate validation on save
-
-</details>
+| Persona | Authentication | Capabilities |
+|--------|----------------|----------------|
+| 🧑‍🤝‍🧑 **Passenger** | Unauthenticated | Browse network, view live telemetry, access ETAs, read/write public reviews. |
+| 🚍 **Driver** | JWT Required | Transmit GPS telemetry, manage trip lifecycle (`Offline → Ready → Active → Completed`). |
+| 🛡️ **Admin** | JWT Required | Full CRUD authority over the routing network. Utilize `Leaflet.draw` to digitize new routes directly onto the map interface. |
 
 ---
 
 ## 🛠️ Tech Stack
 
-<table>
-<tr>
-<td align="center" width="96">
-<img src="https://skillicons.dev/icons?i=html,css,js" width="48"/><br/>
-<b>Frontend</b><br/>
-<sub>HTML · CSS · ES Modules</sub>
-</td>
-<td align="center" width="96">
-<img src="https://skillicons.dev/icons?i=nodejs,express" width="48"/><br/>
-<b>Backend</b><br/>
-<sub>Node.js · Express</sub>
-</td>
-<td align="center" width="96">
-<img src="https://skillicons.dev/icons?i=git" width="48"/><br/>
-<b>Maps</b><br/>
-<sub>Leaflet · OSM</sub>
-</td>
-<td align="center" width="96">
-<img src="https://cdn.simpleicons.org/vercel/000000" width="40"/><br/>
-<b>Deploy</b><br/>
-<sub>Vercel Serverless</sub>
-</td>
-<td align="center" width="96">
-<img src="https://cdn.simpleicons.org/redis/DC382D" width="40"/><br/>
-<b>Storage</b><br/>
-<sub>JSON · Redis</sub>
-</td>
-</tr>
-</table>
-
 | Layer | Technologies |
 |-------|-------------|
-| 🎨 **UI** | HTML5, CSS3, Inter-inspired design system, Font Awesome |
-| 🧩 **Frontend** | Vanilla ES Modules, Leaflet, Leaflet.draw |
-| ⚙️ **Backend** | Node.js, Express, JWT, bcryptjs, uuid |
-| 📡 **Realtime** | Socket.IO (local) · HTTP polling (Vercel) |
-| 🗺️ **Maps** | OpenStreetMap tiles |
-| 💾 **Persistence** | JSON files (dev) · Upstash Redis (prod) |
-| ☁️ **Hosting** | Vercel CDN + Serverless Functions |
+| 🎨 **User Interface** | HTML5, CSS3, Custom Design System, Font Awesome |
+| 🧩 **Frontend Logic** | JavaScript (ES6+), Vanilla ES Modules, Leaflet.js |
+| ⚙️ **Backend API** | Node.js (JavaScript), Express.js, JWT, `bcryptjs` |
+| 📡 **Real-Time Data** | Socket.IO (Local) / HTTP Polling (Serverless) |
+| 💾 **Persistence** | File System (JSON) / Upstash Redis |
+| ☁️ **Infrastructure** | Vercel CDN, Vercel Serverless Functions, Vercel Cron Jobs |
 
 ---
 
-## 🏗️ Architecture
+## 🚀 Getting Started (Local Development)
 
-```mermaid
-flowchart TB
-  subgraph client ["🌐 Browser"]
-    UI["A-Frontend<br/>ES Modules"]
-    Maps["🗺️ Leaflet Maps"]
-    UI --> Maps
-  end
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- npm
 
-  subgraph local ["💻 Local Dev"]
-    UI -->|"REST + Socket.IO"| Express["backend/server.js<br/>:3000"]
-    Express --> Files[("📁 JSON + Memory")]
-  end
-
-  subgraph vercel ["☁️ Vercel Production"]
-    UI -->|"REST + Polling"| API["api/index.js<br/>Serverless"]
-    API --> Redis[("💾 Upstash Redis")]
-  end
-```
-
----
-
-## 📸 Screenshots
-
-> Add screenshots of the Home, Passenger, Driver, and Admin panels here.
-
-| Home | Passenger Map |
-|:----:|:-------------:|
-| *Role selection & demo creds* | *Live route tracking* |
-
-| Driver Dashboard | Admin Panel |
-|:----------------:|:-----------:|
-| *Trip controls & map* | *Route drawing & management* |
-
----
-
-## 🚀 Getting Started
-
-### 📌 Prerequisites
-
-- ⚡ [Node.js](https://nodejs.org/) **18+**
-- 📦 npm
-
-### 💻 Run Locally
+### Installation
 
 ```bash
-# 1️⃣ Clone the repository
+# 1. Clone the repository
 git clone https://github.com/Omcodesk/RouteSync.git
 cd RouteSync
 
-# 2️⃣ Install dependencies
+# 2. Install dependencies
 npm install
 
-# 3️⃣ Start the server
+# 3. Configure Environment Variables
+cp .env.example backend/.env
+# (Optional) Update backend/.env with your local configurations
+
+# 4. Spin up the local server
 npm start
 ```
-
-🌍 Open **http://localhost:3000** — frontend & API on the same port.
-
-### 🎮 Optional — Bus Emulator
-
-```powershell
-cd emulator
-$env:API_URL="http://localhost:3000/api/driver/update"
-$env:ROUTES_FILE="..\backend\routes.json"
-npm start
-```
+The application will be available at **http://localhost:3000**.
 
 ---
 
-## 🔧 Environment Variables
+## ☁️ Deployment (Vercel)
 
-Copy `.env.example` → `.env` for local overrides.
+Deploying RouteSync to a production environment requires setting up the Upstash Redis integration.
 
-| Variable | Description | Required |
-|----------|-------------|:--------:|
-| `JWT_SECRET` | Secret for signing JWT tokens | ✅ Prod |
-| `ALLOW_PUBLIC_ROUTES` | `true` — public route access for passengers | ✅ Demo |
-| `DEMO_AUTO_VERIFY` | `true` — auto-verify registrations | ✅ Demo |
-| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST URL | ☁️ Vercel |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis token | ☁️ Vercel |
-| `CRON_SECRET` | Secures `/api/demo/tick` | Optional |
-
----
-
-## ☁️ Deploy to Vercel
-
-```text
-1️⃣  Push to GitHub  →  Vercel auto-deploys on push
-2️⃣  Add Upstash Redis from Vercel Marketplace (recommended)
-3️⃣  Set environment variables (see table above)
-4️⃣  Deploy  →  postinstall bundles Leaflet assets automatically
-```
-
-> ⚠️ On Vercel, Socket.IO is disabled — the app uses **HTTP polling** + periodic demo bus ticks. Same UI, same dashboards.
-
----
-
-## 📁 Project Structure
-
-```
-RouteSync/
-├── 🎨 A-Frontend/          # Static UI (HTML, CSS, ES modules)
-│   ├── js/                 # passenger · driver · admin · maps · api
-│   └── vendor/             # Bundled Leaflet (build output)
-├── ⚙️ backend/
-│   ├── createApp.js        # Shared Express API routes
-│   ├── server.js           # Local dev server (:3000)
-│   └── lib/store.js        # JSON / Redis persistence layer
-├── ☁️ api/index.js         # Vercel serverless entry
-├── 🎮 emulator/            # Bus position simulator
-├── 📜 scripts/             # Build helpers
-└── ⚡ vercel.json          # Vercel routing config
-```
+1. Push your repository to GitHub and import it into **Vercel**.
+2. Navigate to your Vercel project's **Storage** tab.
+3. Connect a new **Upstash Redis** database. Vercel will automatically inject the required `KV_REST_API_URL` and `KV_REST_API_TOKEN` environment variables.
+4. Set the following environment variables in Vercel:
+   - `JWT_SECRET`: A secure, randomized cryptographic string.
+   - `CRON_SECRET`: Required to secure the `/api/demo/tick` endpoint.
+5. Trigger a **Redeploy**.
 
 ---
 
 ## 📡 API Reference
 
-| Method | Endpoint | Description |
-|:------:|----------|-------------|
-| `GET` | `/api/health` | ❤️ Health check |
-| `GET` | `/api/routes` | 🗺️ List all routes |
-| `POST` | `/api/auth/login` | 🔐 Login (driver / admin) |
-| `POST` | `/api/auth/register` | 📝 Register new user |
-| `POST` | `/api/driver/update` | 📍 Update bus position |
-| `GET` | `/api/buses` | 🚌 List active buses |
-| `GET` | `/api/buses/:id/reviews` | 💬 Get bus reviews |
-| `POST` | `/api/buses/:id/reviews` | ✍️ Post a review |
-| `GET` | `/api/demo/tick` | 🎮 Advance demo buses |
+A brief overview of the RESTful endpoints powering RouteSync:
 
----
-
-## 🎓 Skills Demonstrated
-
-```
-✅ Full-Stack Development        ✅ REST API Design
-✅ Real-Time Web Applications     ✅ JWT Authentication & RBAC
-✅ Interactive Geospatial UI      ✅ Serverless Deployment
-✅ Modular JavaScript Architecture ✅ Dual-Mode Data Persistence
-✅ CI/CD via Vercel + GitHub      ✅ Responsive UI / UX Design
-```
-
----
-
-## 📝 Resume Snippet
-
-> **RouteSync** — Full-stack real-time bus tracking platform with Leaflet maps, Express REST API, JWT role-based auth, and live location updates. Deployed on Vercel with serverless architecture.  
-> 🔗 **Live Demo:** [route-sync-five.vercel.app](https://route-sync-five.vercel.app)
+| Method | Endpoint | Auth Required | Purpose |
+|:------:|----------|:-------------:|---------|
+| `GET` | `/api/health` | - | Microservice health check & storage status |
+| `GET` | `/api/routes` | - | Fetch active routing topologies |
+| `POST` | `/api/auth/login` | - | Issue JWT for authenticated sessions |
+| `POST` | `/api/routes` | **Admin** | Persist a newly digitized route |
+| `POST` | `/api/driver/update`| **Driver** | Ingest live GPS telemetry payload |
+| `GET` | `/api/buses` | - | Retrieve aggregated fleet coordinates |
 
 ---
 
@@ -335,37 +199,22 @@ RouteSync/
 
 <div align="center">
 
-**Om Chaddha** · [@Omcodesk](https://github.com/Omcodesk)
+**Om Chaddha** · Software Engineer
 
 [![GitHub](https://img.shields.io/badge/GitHub-Omcodesk-181717?style=flat-square&logo=github)](https://github.com/Omcodesk)
-[![Live Demo](https://img.shields.io/badge/Demo-RouteSync-2563EB?style=flat-square&logo=vercel)](https://route-sync-five.vercel.app)
-
-<br/>
-
-⭐ **Star this repo** if you found it useful!
+[![Portfolio](https://img.shields.io/badge/Portfolio-Live_Demo-2563EB?style=flat-square&logo=vercel)](https://route-sync-five.vercel.app)
 
 </div>
 
 ---
 
-## 📄 License
+## 📄 Licensing & Open Source
 
-This project is licensed under the **[MIT License](LICENSE)**.
+This project is open-source and available under the **[MIT License](LICENSE)**. 
 
-## 🔒 Security
-
-Report vulnerabilities via **[SECURITY.md](SECURITY.md)** — please do not open public issues for security reports.
-
-## 🤝 Contributing
-
-Contributions are welcome! See **[CONTRIBUTING.md](CONTRIBUTING.md)** for guidelines.
-
----
+- **Security:** Review our [Security Policy](SECURITY.md) before reporting vulnerabilities.
+- **Contributing:** See [Contributing Guidelines](CONTRIBUTING.md) for architectural constraints and PR workflows.
 
 <div align="center">
-
-**Made with ❤️ by [Omcodesk](https://github.com/Omcodesk)**
-
-*RouteSync © 2026*
-
+*Engineered by Omcodesk © 2026*
 </div>

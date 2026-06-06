@@ -1,57 +1,78 @@
 # Contributing to RouteSync
 
-Thank you for your interest in contributing to RouteSync. This document outlines how to get started.
+Thank you for your interest in contributing to RouteSync. As an open-source project designed to demonstrate enterprise-grade real-time systems, we maintain high standards for code quality, architecture, and modularity.
 
-## Getting Started
+---
 
-1. **Fork** the repository on GitHub.
-2. **Clone** your fork locally:
+## 🏗️ Architectural Overview for Developers
+
+Before diving into the code, please familiarize yourself with the project's structural boundaries:
+
+- **Frontend (`A-Frontend/js/`)**: The client is built using Vanilla ES Modules to maintain a zero-build pipeline. Logic is strictly separated by domain (`passenger.js`, `driver.js`, `admin.js`, `maps.js`). Do **not** write monolithic files or inject inline scripts.
+- **Backend API (`backend/createApp.js`)**: All Express middleware, JWT validation, and endpoint routing is encapsulated here.
+- **Persistence Layer (`backend/lib/store.js`)**: **CRITICAL:** Do not write directly to the JSON files from your route handlers. All database transactions must pass through `store.js` so they can be transparently routed to either the local file system or the Upstash Redis cluster depending on the environment context.
+
+---
+
+## 🚀 Local Development Workflow
+
+### 1. Repository Setup
+Fork the repository on GitHub, then clone your fork locally:
+```bash
+git clone https://github.com/YOUR_USERNAME/RouteSync.git
+cd RouteSync
+npm install
+```
+
+### 2. Environment Configuration
+Copy the `.env.example` file to create your local environment file:
+```bash
+cp .env.example backend/.env
+```
+By default, the application runs entirely on local JSON files.
+
+*(Optional)* If you wish to test the Vercel Production parity locally with Redis:
+1. Provision a free Upstash Redis database.
+2. Add `KV_REST_API_URL` and `KV_REST_API_TOKEN` to your `backend/.env` file.
+
+### 3. Running the Server
+```bash
+npm start
+```
+The application will be served at `http://localhost:3000`.
+
+---
+
+## 💻 Making Contributions
+
+1. **Branching Strategy:** Create a well-named feature branch from `main`:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/RouteSync.git
-   cd RouteSync
+   git checkout -b feature/your-descriptive-feature-name
    ```
-3. **Install** dependencies and run the app:
-   ```bash
-   npm install
-   npm start
-   ```
-4. Open **http://localhost:3000** and verify everything works.
+2. **Commit Hygiene:** Make small, focused commits with clear, descriptive messages.
+3. **Local Testing:** You must test your changes across all three persona flows before opening a Pull Request:
+   - Ensure Passenger maps load and poll correctly.
+   - Ensure the Driver dashboard successfully broadcasts GPS telemetry.
+   - Ensure the Admin dashboard can accurately save/edit/delete a route.
 
-## Development Workflow
+---
 
-1. Create a feature branch from `main`:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-2. Make your changes with clear, focused commits.
-3. Test locally — passenger map, driver trip flow, and admin route CRUD.
-4. Push to your fork and open a **Pull Request** against `main`.
+## 🐛 Bug Reports & Feature Requests
 
-## Code Guidelines
+When opening an issue, please provide robust context to help us triage efficiently:
+- A descriptive title and clear explanation of the bug/feature.
+- Exact steps to reproduce the issue.
+- Expected behavior vs. actual behavior observed.
+- Environment details (Browser, OS, Node.js version).
+- Code snippets or screenshots where applicable.
 
-- Match existing code style and naming conventions.
-- Keep frontend logic in `A-Frontend/js/` modules — avoid growing monolithic files.
-- Shared API logic belongs in `backend/createApp.js`.
-- Use `backend/lib/store.js` for persistence — do not write directly to JSON in route handlers.
-- Prefer small, reviewable PRs over large refactors.
+---
 
-## Reporting Issues
+## ✅ Pull Request Checklist
 
-When opening an issue, please include:
-
-- A clear title and description
-- Steps to reproduce (for bugs)
-- Expected vs actual behavior
-- Browser and OS (for frontend issues)
-- Screenshots if applicable
-
-## Pull Request Checklist
-
-- [ ] App runs locally with `npm start`
-- [ ] Passenger, driver, and admin flows tested
-- [ ] No secrets or `.env` files committed
-- [ ] README updated if behavior or setup changed
-
-## Questions?
-
-Open a [GitHub Issue](https://github.com/Omcodesk/RouteSync/issues) for questions or suggestions.
+Before marking your PR as "Ready for Review", ensure you have verified the following:
+- [ ] The application boots successfully locally via `npm start`.
+- [ ] All three roles (Passenger, Driver, Admin) have been manually tested.
+- [ ] No secrets or `.env` files are accidentally included in your commits.
+- [ ] You have strictly utilized `store.js` for any new data persistence requirements.
+- [ ] The `README.md` has been updated if your PR modifies the deployment process or setup instructions.
