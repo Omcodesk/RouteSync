@@ -3,14 +3,13 @@ import { state, getRunningBusesForRoute } from './state.js';
 import { fetchRoutes, fetchBuses } from './api.js';
 import {
   ensurePassengerMap,
-  syncRoutesToMaps,
-  stylePassengerRoutes,
+  drawPassengerRoute,
   fitPassengerRoute,
   updatePassengerMarkers,
   invalidateMap,
   maps,
   defaultColor,
-  routeLayers,
+  getRouteLayer,
 } from './maps.js';
 import { escapeHtml, computeETAString, statusBadge } from './utils.js';
 
@@ -20,9 +19,7 @@ export function initPassengerPanel() {
 
 export async function refreshPassengerData() {
   try {
-    await fetchRoutes();
-    await fetchBuses();
-    if (maps.passenger) syncRoutesToMaps();
+    await Promise.all([fetchRoutes(), fetchBuses()]);
     renderRoutesGrid(false);
     if (state.selectedRouteId) refreshPassengerRouteView();
   } catch (e) {
@@ -36,8 +33,7 @@ function renderRoutesGrid(showSkeleton) {
 
   if (showSkeleton && !Object.keys(state.routes).length) {
     grid.innerHTML = Array(3).fill('<div class="skeleton-card"></div>').join('');
-    fetchRoutes()
-      .then(() => fetchBuses())
+    Promise.all([fetchRoutes(), fetchBuses()])
       .then(() => renderRoutesGrid(false))
       .catch(() => {
         grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-route"></i><p>Could not load routes</p></div>';
@@ -71,6 +67,7 @@ function renderRoutesGrid(showSkeleton) {
 
 export async function openPassengerRoute(id) {
   const routeId = String(id);
+  state.selectedRouteId = routeId;
 
   document.getElementById('passenger-list-view')?.classList.add('hidden');
   document.getElementById('passenger-map-page')?.classList.remove('hidden');
@@ -78,8 +75,16 @@ export async function openPassengerRoute(id) {
   const loading = document.getElementById('passenger-map-loading');
   loading?.classList.remove('hidden');
 
-  await fetchRoutes(true);
-  await fetchBuses();
+  ensurePassengerMap();
+  invalidateMap(maps.passenger);
+
+  try {
+    await Promise.all([fetchRoutes(true), fetchBuses()]);
+  } catch (e) {
+    console.error('passenger route load', e);
+    loading?.classList.add('hidden');
+    return;
+  }
 
   const rt = state.routes[routeId];
   if (!rt) {
@@ -87,11 +92,7 @@ export async function openPassengerRoute(id) {
     return;
   }
 
-  state.selectedRouteId = routeId;
-
-  ensurePassengerMap();
-  syncRoutesToMaps();
-  stylePassengerRoutes(routeId);
+  drawPassengerRoute(routeId);
 
   const running = getRunningBusesForRoute(routeId);
   renderBusList(running);
@@ -114,8 +115,7 @@ function refreshPassengerRouteView() {
   if (!state.selectedRouteId || !maps.passenger) return;
   const id = state.selectedRouteId;
 
-  if (!routeLayers[id]) syncRoutesToMaps();
-  stylePassengerRoutes(id);
+  if (!getRouteLayer('passenger', id)) drawPassengerRoute(id);
 
   const running = getRunningBusesForRoute(id);
   renderBusList(running);

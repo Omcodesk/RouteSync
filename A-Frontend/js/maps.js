@@ -9,7 +9,13 @@ export const maps = {
   admin: null,
 };
 
-export const routeLayers = {};
+/** Per-map route polylines — Leaflet layers cannot be shared across maps */
+const routeLayersByMap = {
+  passenger: {},
+  driver: {},
+  admin: {},
+};
+
 export const busMarkers = {};
 export const driverMarker = { marker: null };
 
@@ -25,6 +31,7 @@ function tileLayer() {
     maxZoom: 18,
     attribution: '&copy; OpenStreetMap',
     updateWhenIdle: true,
+    updateWhenZooming: false,
     keepBuffer: 1,
   });
 }
@@ -40,6 +47,33 @@ function baseMap(elId, center = DEFAULT_MAP_CENTER) {
   }).setView(center, DEFAULT_MAP_ZOOM);
   tileLayer().addTo(map);
   return map;
+}
+
+function makeRoutePolyline(id, rt, style = {}) {
+  const coords = normalizeCoordinates(rt.coordinates);
+  if (coords.length < 2) return null;
+  return L.polyline(coords, {
+    color: rt.color || defaultColor(id),
+    weight: 5,
+    opacity: 0.9,
+    lineCap: 'round',
+    lineJoin: 'round',
+    ...style,
+  });
+}
+
+function clearMapRouteLayers(mapKey) {
+  const map = maps[mapKey];
+  const layers = routeLayersByMap[mapKey];
+  if (!map || !layers) return;
+  Object.values(layers).forEach((poly) => {
+    try { if (map.hasLayer(poly)) map.removeLayer(poly); } catch (_) {}
+  });
+  Object.keys(layers).forEach((k) => delete layers[k]);
+}
+
+export function getRouteLayer(mapKey, routeId) {
+  return routeLayersByMap[mapKey]?.[String(routeId)] || null;
 }
 
 /** Init passenger map only when the map panel is visible */
@@ -77,56 +111,49 @@ export function initAdminMap(onRouteDrawn) {
   return maps.admin;
 }
 
-function clearRouteLayersFrom(map) {
-  if (!map) return;
-  Object.values(routeLayers).forEach((poly) => {
-    try { if (map.hasLayer(poly)) map.removeLayer(poly); } catch (_) {}
-  });
+/** Draw only the selected route on the passenger map (fast path) */
+export function drawPassengerRoute(routeId) {
+  const map = maps.passenger;
+  if (!map) return null;
+
+  clearMapRouteLayers('passenger');
+  const id = String(routeId);
+  const rt = state.routes[id];
+  if (!rt) return null;
+
+  const poly = makeRoutePolyline(id, rt, { weight: 6, opacity: 1 });
+  if (!poly) return null;
+
+  poly.addTo(map);
+  routeLayersByMap.passenger[id] = poly;
+  return poly;
 }
 
-/** Sync route polylines to all initialized maps */
+/** Sync all routes to driver/admin maps; passenger uses drawPassengerRoute */
 export function syncRoutesToMaps() {
-  [maps.passenger, maps.driver, maps.admin].forEach(clearRouteLayersFrom);
-  Object.keys(routeLayers).forEach((k) => delete routeLayers[k]);
-
-  Object.entries(state.routes).forEach(([id, rt]) => {
-    const coords = normalizeCoordinates(rt.coordinates);
-    if (coords.length < 2) return;
-    const poly = L.polyline(coords, {
-      color: rt.color || defaultColor(id),
-      weight: 5,
-      opacity: 0.9,
-      lineCap: 'round',
-      lineJoin: 'round',
+  ['driver', 'admin'].forEach((mapKey) => {
+    if (!maps[mapKey]) return;
+    clearMapRouteLayers(mapKey);
+    Object.entries(state.routes).forEach(([id, rt]) => {
+      const poly = makeRoutePolyline(id, rt);
+      if (!poly) return;
+      poly.addTo(maps[mapKey]);
+      routeLayersByMap[mapKey][id] = poly;
     });
-    routeLayers[id] = poly;
-    if (maps.passenger) poly.addTo(maps.passenger);
-    if (maps.driver) poly.addTo(maps.driver);
-    if (maps.admin) poly.addTo(maps.admin);
   });
+
+  if (maps.passenger && state.selectedRouteId) {
+    drawPassengerRoute(state.selectedRouteId);
+  }
 }
 
 export function redrawAllRoutes() {
   syncRoutesToMaps();
 }
 
-/** Style routes on passenger map — highlight selected */
-export function stylePassengerRoutes(selectedId) {
-  Object.entries(routeLayers).forEach(([rid, poly]) => {
-    if (!poly?.setStyle) return;
-    const selected = String(rid) === String(selectedId);
-    poly.setStyle({
-      color: state.routes[rid]?.color || defaultColor(rid),
-      opacity: selected ? 1 : 0.25,
-      weight: selected ? 6 : 3,
-    });
-    if (selected && maps.passenger) poly.bringToFront();
-  });
-}
-
 export function fitPassengerRoute(routeId) {
   const map = maps.passenger;
-  const poly = routeLayers[String(routeId)];
+  const poly = getRouteLayer('passenger', routeId);
   if (!map || !poly) return;
   try {
     map.fitBounds(poly.getBounds(), { padding: [48, 48], maxZoom: 15, animate: false });
@@ -137,7 +164,7 @@ export function highlightRouteOnDriver(routeId) {
   const map = maps.driver;
   if (!map) return;
 
-  Object.entries(routeLayers).forEach(([id, poly]) => {
+  Object.entries(routeLayersByMap.driver).forEach(([id, poly]) => {
     const selected = routeId && String(id) === String(routeId);
     poly.setStyle({
       opacity: routeId ? (selected ? 1 : 0.2) : 0.9,
@@ -150,7 +177,7 @@ export function highlightRouteOnDriver(routeId) {
   const coords = normalizeCoordinates(state.routes[String(routeId)]?.coordinates);
   if (!coords.length) return;
 
-  const poly = routeLayers[String(routeId)];
+  const poly = getRouteLayer('driver', routeId);
   if (poly) {
     try { map.fitBounds(poly.getBounds(), { padding: [40, 40], maxZoom: 15, animate: false }); } catch (_) {}
   }
