@@ -12,5 +12,12 @@
     "passwordHash": "$2b$10$8GNaWSvQtU1noL1HHfVrzOsHiHyc0FUStuVXvU9kq0lnYoQlpxt5G",
     "role": "driver",
     "verified": true
+  },
+  "omchaddha7@gmail.com": {
+    "id": "main-admin",
+    "email": "omchaddha7@gmail.com",
+    "passwordHash": "$2b$10$7Qg7BWWZInUiXhm/cR3SheuQuqHCB1t1DMnvHN5iMo6N9Tc.5vNpK",
+    "role": "admin",
+    "verified": true
   }
 }

@@ -272,6 +272,7 @@ function createApp(options = {}) {
   app.post('/api/routes', async (req, res) => {
     const check = await ensureAdmin(req);
     if (!check.ok) return res.status(check.status).json({ msg: check.msg });
+    if (check.user.email === 'demo-admin@routesync.app') return res.status(403).json({ msg: 'Demo accounts cannot modify routes to preserve the environment.' });
     const { name, color, image, coordinates } = req.body;
     const checkCoords = validateCoordinates(coordinates);
     if (!checkCoords.ok) return res.status(400).json({ msg: checkCoords.msg });
@@ -287,6 +288,7 @@ function createApp(options = {}) {
   app.put('/api/routes/:id', async (req, res) => {
     const check = await ensureAdmin(req);
     if (!check.ok) return res.status(check.status).json({ msg: check.msg });
+    if (check.user.email === 'demo-admin@routesync.app') return res.status(403).json({ msg: 'Demo accounts cannot modify routes to preserve the environment.' });
     const id = String(req.params.id);
     const routes = await store.readRoutesObj();
     if (!routes[id]) return res.status(404).json({ msg: 'route not found' });
@@ -302,6 +304,7 @@ function createApp(options = {}) {
   app.delete('/api/routes/:id', async (req, res) => {
     const check = await ensureAdmin(req);
     if (!check.ok) return res.status(check.status).json({ msg: check.msg });
+    if (check.user.email === 'demo-admin@routesync.app') return res.status(403).json({ msg: 'Demo accounts cannot modify routes to preserve the environment.' });
     const id = String(req.params.id);
     const routes = await store.readRoutesObj();
     if (!routes[id]) return res.status(404).json({ msg: 'route not found' });
