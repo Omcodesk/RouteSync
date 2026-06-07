@@ -27,6 +27,14 @@ if (USE_REDIS) {
   });
 }
 
+const withTimeout = (promise, ms = 1500) => {
+  let timer;
+  const timeoutPromise = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Upstash Redis Timeout')), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+};
+
 async function ensureFiles() {
   // Vercel serverless FS is read-only; seed files are bundled, Redis handles writes in prod.
   if (USE_REDIS || process.env.VERCEL) return;
@@ -40,10 +48,16 @@ async function ensureFiles() {
 
 async function readRoutesObj() {
   if (USE_REDIS) {
-    let data = await redis.get('routes');
-    if (data && typeof data === 'object') return data;
+    try {
+      let data = await redis.get('routes');
+      if (data && typeof data === 'object') return data;
+    } catch (e) {
+      console.error('Redis get routes failed:', e.message);
+    }
     const seed = await fs.readJson(SEED_ROUTES_FILE).catch(() => ({}));
-    if (Object.keys(seed).length) await redis.set('routes', seed);
+    if (Object.keys(seed).length) {
+      try { await redis.set('routes', seed); } catch(e) {}
+    }
     return seed;
   }
   try { return await fs.readJson(ROUTES_FILE); }
@@ -52,7 +66,7 @@ async function readRoutesObj() {
 
 async function writeRoutesObj(obj) {
   if (USE_REDIS) {
-    await redis.set('routes', obj);
+    try { await redis.set('routes', obj); } catch(e) {}
     return;
   }
   return fs.writeJson(ROUTES_FILE, obj, { spaces: 2 });
@@ -97,16 +111,23 @@ async function writeReviewsObj(obj) {
 
 async function getAllBuses() {
   if (USE_REDIS) {
-    const data = await redis.hgetall('buses');
-    if (!data) return [];
-    return Object.values(data).map((b) => (typeof b === 'string' ? JSON.parse(b) : b));
+    try {
+      const data = await redis.hgetall('buses');
+      if (!data) return [];
+      return Object.values(data).map((b) => {
+        try { return typeof b === 'string' ? JSON.parse(b) : b; } catch (e) { return null; }
+      }).filter(Boolean);
+    } catch (e) {
+      console.error('Redis hgetall buses failed:', e.message);
+      return [];
+    }
   }
   return [...localBuses.values()];
 }
 
 async function setBus(busId, busObj) {
   if (USE_REDIS) {
-    await redis.hset('buses', String(busId), busObj);
+    try { await redis.hset('buses', { [String(busId)]: busObj }); } catch(e) {}
     return;
   }
   localBuses.set(String(busId), busObj);
