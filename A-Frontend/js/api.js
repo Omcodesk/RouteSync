@@ -38,16 +38,21 @@ export async function fetchRoutes(force = false) {
 }
 
 export async function fetchBuses() {
-  const res = await fetch(`${API_BASE}/buses?t=${Date.now()}`);
-  if (!res.ok) throw new Error('Failed to load buses');
-  const data = await res.json();
-  const arr = Array.isArray(data) ? data : (data ? Object.values(data) : []);
-  arr.forEach((b) => {
-    if (b && (b.busId || b.bus_id)) {
-      state.buses[String(b.busId || b.bus_id)] = b;
-    }
-  });
-  return arr;
+  try {
+    const res = await fetch(`${API_BASE}/buses?t=${Date.now()}`);
+    if (!res.ok) throw new Error('Failed to load buses');
+    const data = await res.json();
+    const arr = Array.isArray(data) ? data : (data ? Object.values(data) : []);
+    arr.forEach((b) => {
+      if (b && (b.busId || b.bus_id)) {
+        state.buses[String(b.busId || b.bus_id)] = b;
+      }
+    });
+    return arr;
+  } catch (e) {
+    console.error('fetchBuses error:', e);
+    return [];
+  }
 }
 
 export async function postDriverUpdate(payload) {
