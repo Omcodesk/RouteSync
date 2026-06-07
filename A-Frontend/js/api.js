@@ -15,8 +15,9 @@ export async function fetchRoutes(force = false) {
     if (!res.ok) throw new Error('Failed to load routes');
     const data = await res.json();
     state.routes = {};
-    (Array.isArray(data) ? data : Object.values(data || {})).forEach((r) => {
-      if (r?.id != null) {
+    const routeArray = Array.isArray(data) ? data : (data ? Object.values(data) : []);
+    routeArray.forEach((r) => {
+      if (r && r.id != null) {
         state.routes[String(r.id)] = {
           ...r,
           coordinates: normalizeCoordinates(r.coordinates),
@@ -40,9 +41,11 @@ export async function fetchBuses() {
   const res = await fetch(`${API_BASE}/buses?t=${Date.now()}`);
   if (!res.ok) throw new Error('Failed to load buses');
   const data = await res.json();
-  const arr = Array.isArray(data) ? data : Object.values(data || {});
+  const arr = Array.isArray(data) ? data : (data ? Object.values(data) : []);
   arr.forEach((b) => {
-    state.buses[String(b.busId || b.bus_id)] = b;
+    if (b && (b.busId || b.bus_id)) {
+      state.buses[String(b.busId || b.bus_id)] = b;
+    }
   });
   return arr;
 }
