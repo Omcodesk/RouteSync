@@ -11,7 +11,7 @@ export async function fetchRoutes(force = false) {
   if (state.routesFetchPromise && !force) return state.routesFetchPromise;
 
   state.routesFetchPromise = (async () => {
-    const res = await fetch(`${API_BASE}/routes`, { cache: 'no-store' });
+    const res = await fetch(`${API_BASE}/routes?t=${Date.now()}`);
     if (!res.ok) throw new Error('Failed to load routes');
     const data = await res.json();
     state.routes = {};
@@ -37,7 +37,7 @@ export async function fetchRoutes(force = false) {
 }
 
 export async function fetchBuses() {
-  const res = await fetch(`${API_BASE}/buses`, { cache: 'no-store' });
+  const res = await fetch(`${API_BASE}/buses?t=${Date.now()}`);
   if (!res.ok) throw new Error('Failed to load buses');
   const data = await res.json();
   const arr = Array.isArray(data) ? data : Object.values(data || {});
