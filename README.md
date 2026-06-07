@@ -91,6 +91,12 @@ flowchart TB
 - ⏱️ **Algorithmic ETA Calculation:** Real-time predictive ETAs computed on the backend using the Haversine formula to calculate the distance between active bus coordinates and the remaining route polyline.
 - 🛡️ **Defensive API Design:** Comprehensive backend validation to prevent malformed coordinate injection, unauthorized route mutations, and abuse.
 
+<br/>
+<div align="center">
+  <img src="assets/admin.png" alt="RouteSync Admin Panel - Route Drawing" width="800"/>
+  <p><i>Admin Dashboard: Full CRUD operations and geospatial drawing using Leaflet.draw</i></p>
+</div>
+
 ---
 
 ## 🌐 Live Demo & Sandbox
@@ -123,6 +129,12 @@ The application strictly enforces permission boundaries across three distinct au
 | 🧑‍🤝‍🧑 **Passenger** | Unauthenticated | Browse network, view live telemetry, access ETAs, read/write public reviews. |
 | 🚍 **Driver** | JWT Required | Transmit GPS telemetry, manage trip lifecycle (`Offline → Ready → Active → Completed`). |
 | 🛡️ **Admin** | JWT Required | Full CRUD authority over the routing network. Utilize `Leaflet.draw` to digitize new routes directly onto the map interface. |
+
+<br/>
+<div align="center">
+  <img src="assets/driver.png" alt="RouteSync Driver Dashboard" width="800"/>
+  <p><i>Driver Dashboard: Live telemetry broadcasting and route assignment</i></p>
+</div>
 
 ---
 
