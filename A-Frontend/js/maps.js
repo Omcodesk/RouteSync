@@ -208,9 +208,9 @@ export function setDriverPosition(lat, lng, pan = false) {
   if (pan) map.panTo(pos);
 }
 
-export function makeBusIcon(color = '#2563EB', size = 32) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="12" rx="2" fill="${color}" stroke="#0F172A" stroke-width="0.8"/><circle cx="7" cy="18" r="1.6" fill="#0F172A"/><circle cx="17" cy="18" r="1.6" fill="#0F172A"/></svg>`;
-  return L.divIcon({ className: 'bus-div-icon', html: svg, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+export function makeBusIcon(color = '#2563EB', size = 36) {
+  const html = `<div class="driver-pin" style="background: ${color};"><i class="fa-solid fa-bus"></i></div>`;
+  return L.divIcon({ className: 'driver-pos-icon', html, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
 }
 
 export function updatePassengerMarkers(list) {
