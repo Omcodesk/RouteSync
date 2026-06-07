@@ -11,22 +11,28 @@ export async function fetchRoutes(force = false) {
   if (state.routesFetchPromise && !force) return state.routesFetchPromise;
 
   state.routesFetchPromise = (async () => {
-    const res = await fetch(`${API_BASE}/routes?t=${Date.now()}`);
-    if (!res.ok) throw new Error('Failed to load routes');
-    const data = await res.json();
-    state.routes = {};
-    const routeArray = Array.isArray(data) ? data : (data ? Object.values(data) : []);
-    routeArray.forEach((r) => {
-      if (r && r.id != null) {
-        state.routes[String(r.id)] = {
-          ...r,
-          coordinates: normalizeCoordinates(r.coordinates),
-        };
-      }
-    });
-    state.routesLoadedAt = Date.now();
-    state.routesFetchPromise = null;
-    return state.routes;
+    try {
+      const res = await fetch(`${API_BASE}/routes?t=${Date.now()}`);
+      if (!res.ok) throw new Error('Failed to load routes');
+      const data = await res.json();
+      state.routes = {};
+      const routeArray = Array.isArray(data) ? data : (data ? Object.values(data) : []);
+      routeArray.forEach((r) => {
+        if (r && r.id != null) {
+          state.routes[String(r.id)] = {
+            ...r,
+            coordinates: normalizeCoordinates(r.coordinates),
+          };
+        }
+      });
+      state.routesLoadedAt = Date.now();
+      state.routesFetchPromise = null;
+      return state.routes;
+    } catch (e) {
+      console.error('fetchRoutes error:', e);
+      state.routesFetchPromise = null;
+      return state.routes || {};
+    }
   })();
 
   try {
