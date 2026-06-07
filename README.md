@@ -62,6 +62,18 @@ Built as a comprehensive portfolio piece, RouteSync demonstrates mastery of mode
   <p><i>Full CRUD operations and geospatial drawing using Leaflet.draw</i></p>
 </div>
 
+### Passenger Route Selection
+<div align="center">
+  <img src="assets/passenger-selection.png" alt="Passenger Route Selection" width="800"/>
+  <p><i>Browse active routes and view live fleet statistics</i></p>
+</div>
+
+### Passenger Live Tracking
+<div align="center">
+  <img src="assets/passenger-tracking.png" alt="Passenger Live Tracking" width="800"/>
+  <p><i>Real-time bus movement, intelligent ETAs, and occupancy monitoring</i></p>
+</div>
+
 ### Live Driver Telemetry
 <div align="center">
   <img src="assets/driver.png" alt="Driver Dashboard" width="800"/>
