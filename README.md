@@ -56,6 +56,12 @@ Built as a comprehensive portfolio piece, RouteSync demonstrates mastery of mode
 
 ## 📸 Application Showcase
 
+### Platform Landing Page
+<div align="center">
+  <img src="assets/hero.png" alt="RouteSync Landing Page" width="800"/>
+  <p><i>Modern, responsive entry point with role-based routing</i></p>
+</div>
+
 ### Admin Route Digitization
 <div align="center">
   <img src="assets/admin.png" alt="Admin Panel" width="800"/>
