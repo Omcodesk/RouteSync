@@ -57,10 +57,16 @@ export async function startTrip() {
   state.driver.trackIndex = 0;
   state.driver.tripStatus = TRIP_STATUS.ACTIVE;
 
-  await postDriverUpdate(buildPayload('Active'));
-  startAutoTrack();
-  onTripUIChange();
-  toast('Trip started — visible to passengers', 2500);
+  try {
+    await postDriverUpdate(buildPayload('Active'));
+    startAutoTrack();
+    onTripUIChange();
+    toast('Trip started — visible to passengers', 2500);
+  } catch (e) {
+    state.driver.tripStatus = TRIP_STATUS.READY;
+    onTripUIChange();
+    throw new Error('Failed to start trip: ' + e.message);
+  }
 }
 
 export async function sendUpdate() {

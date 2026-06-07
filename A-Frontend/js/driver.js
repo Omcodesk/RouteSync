@@ -29,6 +29,9 @@ async function loadDriverRoutes() {
       sel.appendChild(opt);
     });
     if (state.driver.routeId) sel.value = state.driver.routeId;
+    
+    // IMPORT and CALL redrawAllRoutes so they actually appear on the map!
+    import('./maps.js').then(m => m.redrawAllRoutes());
   } catch (e) {
     sel.innerHTML = '<option value="">Failed to load</option>';
   }
